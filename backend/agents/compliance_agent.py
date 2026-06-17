@@ -14,7 +14,7 @@ import logging
 import os
 from typing import Optional
 
-from models.schemas import ComplianceCheck, ComplianceStatus
+from models.schemas import ComplianceCheck, coerce_compliance_status
 
 logger = logging.getLogger("verdictflow.agents.compliance")
 
@@ -84,7 +84,7 @@ async def run_compliance_agent(
         )
 
         response = await client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-6",
             max_tokens=3000,
             system=COMPLIANCE_SYSTEM_PROMPT,
             messages=[
@@ -111,10 +111,9 @@ async def run_compliance_agent(
         checks: list[ComplianceCheck] = []
         for item in checks_data:
             try:
-                status_str = item.get("status", "needs_review")
                 check = ComplianceCheck(
                     regulation=item.get("regulation", ""),
-                    status=ComplianceStatus(status_str),
+                    status=coerce_compliance_status(item.get("status")),
                     finding=item.get("finding", ""),
                     remediation=item.get("remediation", ""),
                     relevant_clause=item.get("relevant_clause"),

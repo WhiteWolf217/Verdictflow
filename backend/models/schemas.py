@@ -42,10 +42,70 @@ class CaseStatus(str, Enum):
     ANALYZING = "analyzing"  # Clause + Red Team + Financial (parallel)
     COMPLIANCE = "compliance"
     REDLINING = "redlining"
+    ADJUDICATING = "adjudicating"  # Final verdict synthesis
     AWAITING_REVIEW = "awaiting_review"  # Human gate
     APPROVED = "approved"
     REJECTED = "rejected"
     ERROR = "error"
+
+
+class Verdict(str, Enum):
+    APPROVE = "approve"
+    APPROVE_WITH_CHANGES = "approve_with_changes"
+    DO_NOT_SIGN = "do_not_sign"
+
+
+# ── Tolerant Enum Coercion ───────────────────────────────────────────────────
+# LLMs occasionally return enum values with different casing, whitespace, or
+# near-synonyms. These helpers map such values to a valid enum member instead of
+# dropping the finding entirely.
+
+_RISK_SYNONYMS = {
+    "negligible": RiskLevel.LOW, "minimal": RiskLevel.LOW, "minor": RiskLevel.LOW,
+    "moderate": RiskLevel.MEDIUM, "med": RiskLevel.MEDIUM,
+    "severe": RiskLevel.HIGH, "serious": RiskLevel.HIGH, "major": RiskLevel.HIGH,
+    "extreme": RiskLevel.CRITICAL, "fatal": RiskLevel.CRITICAL, "blocker": RiskLevel.CRITICAL,
+}
+
+
+def coerce_risk_level(value, default: RiskLevel = RiskLevel.MEDIUM) -> RiskLevel:
+    if isinstance(value, RiskLevel):
+        return value
+    key = str(value or "").strip().lower()
+    for member in RiskLevel:
+        if key == member.value:
+            return member
+    return _RISK_SYNONYMS.get(key, default)
+
+
+def coerce_compliance_status(value, default: "ComplianceStatus" = None) -> "ComplianceStatus":
+    default = default or ComplianceStatus.NEEDS_REVIEW
+    if isinstance(value, ComplianceStatus):
+        return value
+    key = str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
+    for member in ComplianceStatus:
+        if key == member.value:
+            return member
+    if "non" in key and "compli" in key:
+        return ComplianceStatus.NON_COMPLIANT
+    if "compli" in key:
+        return ComplianceStatus.COMPLIANT
+    return default
+
+
+def coerce_edit_priority(value, default: "EditPriority" = None) -> "EditPriority":
+    default = default or EditPriority.RECOMMENDED
+    if isinstance(value, EditPriority):
+        return value
+    key = str(value or "").strip().lower()
+    for member in EditPriority:
+        if key == member.value:
+            return member
+    if key in ("must", "critical", "mandatory"):
+        return EditPriority.REQUIRED
+    if key in ("nice_to_have", "nice-to-have", "consider", "suggested"):
+        return EditPriority.OPTIONAL
+    return default
 
 
 # ── Contract Metadata ────────────────────────────────────────────────────────
@@ -162,6 +222,10 @@ class AuditPacket(BaseModel):
     financial_risks: list[FinancialRisk] = Field(default_factory=list)
     compliance_checks: list[ComplianceCheck] = Field(default_factory=list)
     redline_edits: list[RedlineEdit] = Field(default_factory=list)
+    # ── Adjudicator output (final synthesis before the human gate) ──
+    verdict: Optional[str] = None  # 3-paragraph narrative verdict
+    verdict_recommendation: Optional[Verdict] = None  # APPROVE / APPROVE_WITH_CHANGES / DO_NOT_SIGN
+    confidence_score: float = 0.0  # 0.0 - 1.0
     human_approval: Optional[HumanApproval] = None
     audit_hash_chain: list[dict] = Field(default_factory=list)  # Populated from AuditChain
     band_room_id: Optional[str] = None

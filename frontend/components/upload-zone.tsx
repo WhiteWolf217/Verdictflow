@@ -65,8 +65,9 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
       "application/pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "application/msword",
+      "text/plain",
     ];
-    return validTypes.includes(file.type) || /\.(pdf|docx|doc)$/i.test(file.name);
+    return validTypes.includes(file.type) || /\.(pdf|docx|doc|txt)$/i.test(file.name);
   };
 
   return (
@@ -91,7 +92,7 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf,.docx,.doc"
+        accept=".pdf,.docx,.doc,.txt"
         onChange={handleFileSelect}
         className="hidden"
         id="file-input"
@@ -128,7 +129,7 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
               </span>
             </p>
             <p className="text-zinc-500 text-sm mt-1">
-              Supports PDF and DOCX files
+              Supports PDF, DOCX, and TXT files
             </p>
           </div>
 

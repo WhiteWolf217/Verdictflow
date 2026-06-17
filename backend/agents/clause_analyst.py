@@ -14,7 +14,7 @@ import logging
 import os
 from typing import Optional
 
-from models.schemas import ClauseFinding, RiskLevel
+from models.schemas import ClauseFinding, RiskLevel, coerce_risk_level
 
 logger = logging.getLogger("verdictflow.agents.clause_analyst")
 
@@ -55,6 +55,10 @@ Focus on:
 - Vague language that could be exploited
 - Clauses that deviate from industry norms
 
+When a MARKET-STANDARD REFERENCE clause is provided, compare the contract text
+against it and explicitly call out how (and how far) the contract deviates from
+that market standard in your explanation.
+
 Respond with a JSON array of findings:
 [
     {
@@ -78,73 +82,113 @@ async def run_clause_analyst(
     """
     Run the Clause Analyst agent on a contract.
 
-    Uses RAG to retrieve relevant chunks per category, then analyzes
-    each category for risky clauses using Claude.
+    For each clause category, uses RAG to retrieve the relevant contract
+    sections AND the closest market-standard precedent clause, then analyzes
+    the category with Claude. All categories run concurrently for speed.
+    Findings are de-duplicated before returning.
 
     Args:
         doc_id: Document ID for Qdrant filtering
         contract_text: Full contract text
-        vectorstore: VectorStoreManager for RAG queries
+        vectorstore: VectorStoreManager for RAG + precedent queries
 
     Returns:
-        List of ClauseFinding objects
+        De-duplicated list of ClauseFinding objects
     """
-    logger.info(f"🔍 Clause Analyst starting for doc '{doc_id}'")
+    import asyncio
 
-    all_findings: list[ClauseFinding] = []
+    from anthropic import AsyncAnthropic
 
-    # For each clause category, use RAG to find relevant sections
-    for category in CLAUSE_CATEGORIES:
-        logger.info(f"  📂 Analyzing category: {category}")
+    logger.info(f"🔍 Clause Analyst starting for doc '{doc_id}' ({len(CLAUSE_CATEGORIES)} categories)")
 
-        # Build context from RAG or full text
+    client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+    async def analyze_one(category: str) -> list[ClauseFinding]:
+        # Contract context for this category (RAG over the uploaded doc).
         context = ""
         if vectorstore:
-            # Semantic search for clauses related to this category
-            search_query = f"{category} clause terms conditions obligations"
             results = vectorstore.search(
-                query=search_query,
+                query=f"{category} clause terms conditions obligations",
                 doc_id=doc_id,
                 top_k=5,
             )
-            if results:
-                context = "\n\n---\n\n".join([r["text"] for r in results])
-            else:
-                # Fall back to a portion of the full text
-                context = contract_text[:6000]
-        else:
-            context = contract_text[:6000]
-
+            context = "\n\n---\n\n".join(r["text"] for r in results) if results else ""
         if not context.strip():
+            context = contract_text[:6000]
+        if not context.strip():
+            return []
+
+        # Closest market-standard precedent for grounded comparison.
+        precedent = None
+        if vectorstore and hasattr(vectorstore, "search_precedents"):
+            hits = vectorstore.search_precedents(
+                query=f"{category} standard clause", top_k=1
+            )
+            if hits:
+                precedent = hits[0]
+
+        return await _analyze_category(client, category, context, precedent)
+
+    results = await asyncio.gather(
+        *(analyze_one(c) for c in CLAUSE_CATEGORIES),
+        return_exceptions=True,
+    )
+
+    all_findings: list[ClauseFinding] = []
+    for category, res in zip(CLAUSE_CATEGORIES, results):
+        if isinstance(res, Exception):
+            logger.error(f"❌ Clause analysis failed for '{category}': {res}")
             continue
+        all_findings.extend(res)
 
-        # Analyze with Claude
-        findings = await _analyze_category(category, context)
-        all_findings.extend(findings)
+    deduped = _dedupe_findings(all_findings)
+    logger.info(
+        f"✅ Clause Analyst complete: {len(deduped)} findings "
+        f"({len(all_findings) - len(deduped)} duplicates removed)"
+    )
+    return deduped
 
-    logger.info(f"✅ Clause Analyst complete: {len(all_findings)} findings")
-    return all_findings
+
+def _dedupe_findings(findings: list[ClauseFinding]) -> list[ClauseFinding]:
+    """Drop near-duplicate findings keyed by (category, first 80 chars of clause)."""
+    seen: set[tuple[str, str]] = set()
+    out: list[ClauseFinding] = []
+    for f in findings:
+        key = (f.category, " ".join(f.clause_text.lower().split())[:80])
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(f)
+    return out
 
 
 async def _analyze_category(
+    client,
     category: str,
     context: str,
+    precedent: Optional[dict] = None,
 ) -> list[ClauseFinding]:
     """Analyze contract text for risky clauses in a specific category."""
     try:
-        from anthropic import AsyncAnthropic
-
-        client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        reference_block = ""
+        if precedent:
+            reference_block = (
+                "\n\nMARKET-STANDARD REFERENCE (for comparison):\n"
+                f"Standard clause: {precedent.get('standard_text', '')}\n"
+                f"What makes a variant risky: {precedent.get('risk_notes', '')}\n"
+            )
 
         response = await client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-6",
             max_tokens=2048,
+            temperature=0.1,
             system=CLAUSE_ANALYST_SYSTEM_PROMPT,
             messages=[
                 {
                     "role": "user",
                     "content": (
-                        f"Analyze the following contract text for risky '{category}' clauses.\n\n"
+                        f"Analyze the following contract text for risky '{category}' clauses."
+                        f"{reference_block}\n\n"
                         f"Contract text:\n{context}"
                     ),
                 }
@@ -153,29 +197,24 @@ async def _analyze_category(
 
         response_text = response.content[0].text
 
-        # Parse JSON response
+        # Parse JSON response (tolerant of markdown fences / prose wrappers)
         try:
             findings_data = json.loads(response_text)
         except json.JSONDecodeError:
             import re
-            json_match = re.search(r'\[.*\]', response_text, re.DOTALL)
-            if json_match:
-                findings_data = json.loads(json_match.group())
-            else:
-                findings_data = []
+            json_match = re.search(r"\[.*\]", response_text, re.DOTALL)
+            findings_data = json.loads(json_match.group()) if json_match else []
 
-        # Convert to ClauseFinding objects
         findings = []
         for item in findings_data:
             try:
-                finding = ClauseFinding(
+                findings.append(ClauseFinding(
                     clause_text=item.get("clause_text", ""),
                     category=item.get("category", category),
-                    risk_level=RiskLevel(item.get("risk_level", "medium")),
+                    risk_level=coerce_risk_level(item.get("risk_level")),
                     explanation=item.get("explanation", ""),
                     recommendations=item.get("recommendations", []),
-                )
-                findings.append(finding)
+                ))
             except Exception as e:
                 logger.warning(f"⚠️  Failed to parse finding: {e}")
 

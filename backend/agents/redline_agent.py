@@ -21,6 +21,7 @@ from models.schemas import (
     FinancialRisk,
     RedlineEdit,
     RedTeamAttack,
+    coerce_edit_priority,
 )
 
 logger = logging.getLogger("verdictflow.agents.redline")
@@ -94,7 +95,7 @@ async def run_redline_agent(
         sample = contract_text[:5000]
 
         response = await client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-6",
             max_tokens=4096,
             system=REDLINE_SYSTEM_PROMPT,
             messages=[
@@ -127,7 +128,7 @@ async def run_redline_agent(
                     original_text=item.get("original_text", ""),
                     suggested_text=item.get("suggested_text", ""),
                     rationale=item.get("rationale", ""),
-                    priority=EditPriority(item.get("priority", "recommended")),
+                    priority=coerce_edit_priority(item.get("priority")),
                 )
                 edits.append(edit)
             except Exception as e:

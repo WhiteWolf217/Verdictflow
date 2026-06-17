@@ -13,7 +13,7 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 
 from api.sse import sse_manager
@@ -60,9 +60,14 @@ async def upload_contract(request: Request, file: UploadFile = File(...)):
     if not file.filename:
         raise HTTPException(400, "No filename provided")
 
+    from core.parser import SUPPORTED_EXTENSIONS
+
     ext = os.path.splitext(file.filename)[1].lower()
-    if ext not in (".pdf", ".docx", ".doc"):
-        raise HTTPException(400, f"Unsupported file type: {ext}. Use PDF or DOCX.")
+    if ext not in SUPPORTED_EXTENSIONS:
+        raise HTTPException(
+            400,
+            f"Unsupported file type: {ext}. Supported: {', '.join(SUPPORTED_EXTENSIONS)}",
+        )
 
     # Generate case ID and save file
     case_id = str(uuid.uuid4())
@@ -141,8 +146,12 @@ async def get_case(case_id: str):
         "financial_risks": [r.model_dump(mode="json") for r in packet.financial_risks],
         "compliance_checks": [c.model_dump(mode="json") for c in packet.compliance_checks],
         "redline_edits": [e.model_dump(mode="json") for e in packet.redline_edits],
+        "verdict": packet.verdict,
+        "verdict_recommendation": packet.verdict_recommendation.value if packet.verdict_recommendation else None,
+        "confidence_score": packet.confidence_score,
         "human_approval": packet.human_approval.model_dump(mode="json") if packet.human_approval else None,
         "risk_summary": packet.risk_summary,
+        "band_room_id": packet.band_room_id,
         "created_at": packet.created_at.isoformat(),
         "finalized_at": packet.finalized_at.isoformat() if packet.finalized_at else None,
     }
@@ -202,6 +211,38 @@ async def reject_case(case_id: str, body: ApprovalRequest):
         raise HTTPException(404, str(e))
 
 
+@router.get("/rooms/{room_id}")
+async def get_room(room_id: str, request: Request):
+    """Return the Band case-room transcript (agent conversation + events)."""
+    band_client = getattr(request.app.state, "band_client", None)
+    if not band_client:
+        raise HTTPException(404, "Band coordination not available")
+
+    transcript = band_client.get_transcript(room_id)
+    if not transcript:
+        raise HTTPException(404, f"Room '{room_id}' not found")
+    return transcript
+
+
+@router.get("/cases/{case_id}/room")
+async def get_case_room(case_id: str, request: Request):
+    """Resolve a case to its Band room and return the transcript."""
+    from agents.orchestrator import get_case
+
+    packet = get_case(case_id)
+    if not packet:
+        raise HTTPException(404, f"Case '{case_id}' not found")
+
+    band_client = getattr(request.app.state, "band_client", None)
+    if not band_client or not packet.band_room_id:
+        raise HTTPException(404, "No room associated with this case")
+
+    transcript = band_client.get_transcript(packet.band_room_id)
+    if not transcript:
+        raise HTTPException(404, "Room transcript not found")
+    return transcript
+
+
 @router.get("/cases/{case_id}/audit")
 async def get_audit_trail(case_id: str):
     """Export the tamper-evident audit packet as JSON."""
@@ -220,6 +261,30 @@ async def get_audit_trail(case_id: str):
         "chain_length": len(audit_chain) if audit_chain else 0,
         "latest_hash": audit_chain.get_latest_hash() if audit_chain else None,
     }
+
+
+@router.get("/cases/{case_id}/download")
+async def download_audit(case_id: str):
+    """Download the audit packet as a professional .docx report."""
+    from agents.orchestrator import get_case, get_audit_chain
+    from core.audit_packager import build_audit_docx
+
+    packet = get_case(case_id)
+    if not packet:
+        raise HTTPException(404, f"Case '{case_id}' not found")
+
+    audit_chain = get_audit_chain(case_id)
+    latest_hash = audit_chain.get_latest_hash() if audit_chain else None
+
+    data = build_audit_docx(packet, latest_hash)
+    filename = f"verdictflow_audit_{case_id[:8]}.docx"
+    return Response(
+        content=data,
+        media_type=(
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ),
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/cases/{case_id}/audit/verify")

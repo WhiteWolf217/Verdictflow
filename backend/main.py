@@ -36,6 +36,11 @@ async def lifespan(app: FastAPI):
     # Initialize Qdrant vector store
     vs = VectorStoreManager()
     vs.ensure_collection()
+    # Seed the market-standard precedent library (idempotent). Non-fatal on failure.
+    try:
+        vs.seed_precedents()
+    except Exception as e:
+        logger.warning(f"⚠️  Precedent library seeding failed: {e}")
     app.state.vectorstore = vs
     logger.info("✅ Qdrant vector store initialized")
 
@@ -51,19 +56,15 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("⏭️  AgentOps API key not set, skipping")
 
-    # Initialize Band SDK (optional — gracefully degrade if unavailable)
-    band_key = os.getenv("BAND_API_KEY")
-    if band_key:
-        try:
-            from band.client import BandClientWrapper
-            band_client = BandClientWrapper()
-            app.state.band_client = band_client
-            logger.info("✅ Band SDK initialized")
-        except Exception as e:
-            logger.warning(f"⚠️  Band SDK init failed: {e}")
-            app.state.band_client = None
-    else:
-        logger.info("⏭️  Band API key not set, running without Band coordination")
+    # Band case-room coordination. Always available: uses the Band SDK when
+    # installed/configured, otherwise built-in in-memory case rooms.
+    try:
+        from band.client import BandClientWrapper
+        band_client = BandClientWrapper()
+        app.state.band_client = band_client
+        logger.info(f"✅ Band case-room coordination ready (mode={band_client.mode})")
+    except Exception as e:
+        logger.warning(f"⚠️  Band client init failed: {e}")
         app.state.band_client = None
 
     logger.info("🟢 VerdictFlow ready — all systems nominal")

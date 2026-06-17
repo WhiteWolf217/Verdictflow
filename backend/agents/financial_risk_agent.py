@@ -119,7 +119,7 @@ async def _analyze_with_claude(contract_text: str) -> list[FinancialRisk]:
         sample = contract_text[:6000]
 
         response = await client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-6",
             max_tokens=3000,
             system=FINANCIAL_RISK_SYSTEM_PROMPT,
             messages=[

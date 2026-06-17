@@ -270,7 +270,45 @@ async def run_pipeline(
             "count": len(redline_edits),
         })
 
-        # ── Stage 5: HUMAN GATE ──────────────────────────────────────────
+        # ── Stage 5: ADJUDICATION (final verdict synthesis) ──────────────
+        packet.status = CaseStatus.ADJUDICATING
+        await sse_manager.emit(case_id, "agent_started", {
+            "agent": "adjudicator",
+            "message": "Synthesizing final verdict...",
+        })
+
+        from agents.adjudicator import run_adjudicator
+        verdict_text, recommendation, confidence = await run_adjudicator(packet)
+        packet.verdict = verdict_text
+        packet.verdict_recommendation = recommendation
+        packet.confidence_score = confidence
+
+        audit_chain.add_entry(
+            "adjudicator", "verdict_issued",
+            {
+                "recommendation": recommendation.value,
+                "confidence": confidence,
+                "verdict": verdict_text,
+            },
+            summary=f"Verdict: {recommendation.value} (confidence {confidence:.0%})",
+        )
+
+        await sse_manager.emit(case_id, "agent_completed", {
+            "agent": "adjudicator",
+            "message": f"Verdict: {recommendation.value.replace('_', ' ').title()} "
+                       f"({confidence:.0%} confidence)",
+            "recommendation": recommendation.value,
+            "confidence": confidence,
+        })
+
+        if band_client and room_id:
+            await band_client.send_agent_message(
+                room_id, "Adjudicator",
+                f"⚖️ Verdict: {recommendation.value.replace('_', ' ').upper()} "
+                f"(confidence {confidence:.0%})",
+            )
+
+        # ── Stage 6: HUMAN GATE ──────────────────────────────────────────
         packet.status = CaseStatus.AWAITING_REVIEW
         packet.audit_hash_chain = audit_chain.export_json()
 

@@ -57,7 +57,7 @@ export default function CaseDetailPage() {
     try {
       const data = await getCase(caseId);
       setCaseData(data);
-    } catch (e) {
+    } catch {
       // Case might not be ready yet
     }
   }, [caseId]);
@@ -80,7 +80,7 @@ export default function CaseDetailPage() {
     try {
       await approveCase(caseId, feedback || undefined);
       await fetchCase();
-    } catch (e) {
+    } catch {
       alert("Approval failed");
     }
     setIsActioning(false);
@@ -91,7 +91,7 @@ export default function CaseDetailPage() {
     try {
       await rejectCase(caseId, feedback || undefined);
       await fetchCase();
-    } catch (e) {
+    } catch {
       alert("Rejection failed");
     }
     setIsActioning(false);
@@ -101,7 +101,7 @@ export default function CaseDetailPage() {
     try {
       const result = await verifyAuditTrail(caseId);
       setIsVerified(result.is_valid);
-    } catch (e) {
+    } catch {
       setIsVerified(false);
     }
   };
@@ -110,7 +110,7 @@ export default function CaseDetailPage() {
     try {
       const data = await getAuditTrail(caseId);
       setAuditEntries(data.audit_chain);
-    } catch (e) {
+    } catch {
       // Audit might not be ready yet
     }
   }, [caseId]);

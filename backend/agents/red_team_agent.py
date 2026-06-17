@@ -14,7 +14,7 @@ import logging
 import os
 from typing import Optional
 
-from models.schemas import RedTeamAttack, RiskLevel
+from models.schemas import RedTeamAttack, coerce_risk_level
 
 logger = logging.getLogger("verdictflow.agents.red_team")
 
@@ -146,7 +146,7 @@ async def _run_attacker_fallback(contract_text: str) -> list[dict]:
         client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
         response = await client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-6",
             max_tokens=3000,
             system=ATTACKER_SYSTEM_PROMPT,
             messages=[
@@ -226,7 +226,7 @@ async def _run_defender(attacks: list[dict], contract_text: str) -> list[RedTeam
                 attack_vector=attack.get("attack_vector", "unknown"),
                 target_clause=attack.get("target_clause", ""),
                 exploit_scenario=attack.get("exploit_scenario", ""),
-                severity=RiskLevel(severity),
+                severity=coerce_risk_level(severity),
                 defender_assessment=assessment.get("defender_assessment"),
             ))
 
@@ -240,7 +240,7 @@ async def _run_defender(attacks: list[dict], contract_text: str) -> list[RedTeam
                 attack_vector=a.get("attack_vector", "unknown"),
                 target_clause=a.get("target_clause", ""),
                 exploit_scenario=a.get("exploit_scenario", ""),
-                severity=RiskLevel(a.get("severity", "medium")),
+                severity=coerce_risk_level(a.get("severity")),
             )
             for a in attacks
         ]

@@ -1,100 +1,179 @@
-import Image from "next/image";
+/**
+ * VerdictFlow — Dashboard Page
+ *
+ * Landing page with case list and contract upload.
+ */
 
-export default function Home() {
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import UploadZone from "@/components/upload-zone";
+import StatusBadge from "@/components/status-badge";
+import { uploadContract, listCases, type CaseListItem } from "@/lib/api";
+
+export default function DashboardPage() {
+  const router = useRouter();
+  const [cases, setCases] = useState<CaseListItem[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch cases on mount and every 5 seconds
+  const fetchCases = useCallback(async () => {
+    try {
+      const data = await listCases();
+      setCases(data);
+    } catch {
+      // Silently fail on polling errors
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCases();
+    const interval = setInterval(fetchCases, 5000);
+    return () => clearInterval(interval);
+  }, [fetchCases]);
+
+  const handleUpload = async (file: File) => {
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      const result = await uploadContract(file);
+      router.push(`/cases/${result.case_id}`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Upload failed");
+      setIsUploading(false);
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen">
+      {/* Header */}
+      <header className="border-b border-zinc-800/50 glass sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm">
+              VF
+            </div>
+            <div>
+              <h1 className="text-lg font-bold gradient-text">VerdictFlow</h1>
+              <p className="text-zinc-500 text-xs">Contract Intelligence</p>
+            </div>
+          </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-xs text-zinc-500">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              System Online
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-10">
+        {/* Hero Section */}
+        <div className="text-center mb-12 animate-slide-up">
+          <h2 className="text-4xl font-bold mb-3">
+            <span className="gradient-text">Intelligent Contract Review</span>
+          </h2>
+          <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+            Upload a contract and let 6 specialized AI agents analyze, red-team,
+            and redline it — producing a tamper-evident audit packet.
+          </p>
+        </div>
+
+        {/* Upload Zone */}
+        <div className="max-w-2xl mx-auto mb-16 animate-slide-up" style={{ animationDelay: "0.1s" }}>
+          <UploadZone onUpload={handleUpload} isUploading={isUploading} />
+
+          {error && (
+            <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* Cases List */}
+        <div className="animate-slide-up" style={{ animationDelay: "0.2s" }}>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold text-zinc-200">
+              Recent Cases
+            </h3>
+            <span className="text-zinc-500 text-sm">
+              {cases.length} {cases.length === 1 ? "case" : "cases"}
+            </span>
+          </div>
+
+          {cases.length === 0 ? (
+            <div className="glass-card p-12 text-center">
+              <p className="text-zinc-500 text-lg">No cases yet</p>
+              <p className="text-zinc-600 text-sm mt-1">
+                Upload a contract to get started
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {cases.map((caseItem) => (
+                <button
+                  key={caseItem.case_id}
+                  onClick={() => router.push(`/cases/${caseItem.case_id}`)}
+                  className="w-full glass-card p-5 flex items-center justify-between hover:border-zinc-600 transition-all duration-200 text-left group"
+                  id={`case-${caseItem.case_id}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-lg group-hover:bg-zinc-700 transition-colors">
+                      📄
+                    </div>
+                    <div>
+                      <p className="text-zinc-200 font-medium group-hover:text-white transition-colors">
+                        {caseItem.filename}
+                      </p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-zinc-500 text-xs">
+                          {caseItem.doc_type}
+                        </span>
+                        <span className="text-zinc-700">•</span>
+                        <span className="text-zinc-500 text-xs">
+                          {new Date(caseItem.created_at).toLocaleDateString()}
+                        </span>
+                        {caseItem.total_findings > 0 && (
+                          <>
+                            <span className="text-zinc-700">•</span>
+                            <span className="text-zinc-500 text-xs">
+                              {caseItem.total_findings} findings
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <StatusBadge status={caseItem.status} />
+                    <svg
+                      className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* Footer */}
+      <footer className="border-t border-zinc-800/50 mt-20">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between text-zinc-600 text-xs">
+          <p>VerdictFlow — Band of Agents Hackathon</p>
+          <p>6 AI Agents • Tamper-Evident Audit • Human-Gated</p>
+        </div>
       </footer>
     </div>
   );
