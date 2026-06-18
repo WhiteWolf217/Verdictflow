@@ -1,0 +1,325 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════
+   VerdictFlow — Design System v2
+   Professional, minimal dark theme
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg-primary: #09090b;
+  --bg-surface-1: #111113;
+  --bg-surface-2: #18181b;
+  --bg-surface-3: #1f1f23;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.12);
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --text-muted: #52525b;
+  --accent: #3b82f6;
+  --accent-muted: rgba(59, 130, 246, 0.12);
+  --success: #22c55e;
+  --success-muted: rgba(34, 197, 94, 0.12);
+  --warning: #f59e0b;
+  --warning-muted: rgba(245, 158, 11, 0.12);
+  --danger: #ef4444;
+  --danger-muted: rgba(239, 68, 68, 0.12);
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+/* ── Surfaces ───────────────────────────────────────────────── */
+.surface-1 {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+}
+
+.surface-2 {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+}
+
+.surface-3 {
+  background: var(--bg-surface-3);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+}
+
+.surface-interactive {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+.surface-interactive:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-surface-2);
+}
+
+/* ── Header bar ─────────────────────────────────────────────── */
+.header-bar {
+  background: rgba(9, 9, 11, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* ── Accent Line Cards ──────────────────────────────────────── */
+.accent-card {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  border-left: 3px solid var(--accent);
+  transition: all 0.2s ease;
+}
+.accent-card:hover {
+  border-color: var(--border-hover);
+  border-left-color: var(--accent);
+}
+.accent-card-danger { border-left-color: var(--danger); }
+.accent-card-warning { border-left-color: var(--warning); }
+.accent-card-success { border-left-color: var(--success); }
+
+/* ── Tab Styles ─────────────────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.tab-item {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tab-item:hover { color: var(--text-secondary); }
+.tab-item-active {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent);
+}
+
+/* ── Buttons ────────────────────────────────────────────────── */
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  border: none;
+  cursor: pointer;
+}
+.btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.5; transform: none; }
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--border-default);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.btn-outline:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
+.btn-success {
+  background: var(--success);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-success:hover { opacity: 0.9; }
+.btn-success:disabled { opacity: 0.5; }
+
+.btn-danger-outline {
+  background: transparent;
+  color: var(--danger);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.btn-danger-outline:hover { background: var(--danger-muted); }
+.btn-danger-outline:disabled { opacity: 0.5; }
+
+/* ── Metric Cards ───────────────────────────────────────────── */
+.metric-value { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+.metric-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+
+/* ── Diff View ──────────────────────────────────────────────── */
+.diff-remove {
+  background: rgba(239, 68, 68, 0.08);
+  border-left: 3px solid rgba(239, 68, 68, 0.4);
+}
+.diff-add {
+  background: rgba(34, 197, 94, 0.08);
+  border-left: 3px solid rgba(34, 197, 94, 0.4);
+}
+
+/* ── Animations ─────────────────────────────────────────────── */
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes scale-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes gauge-fill { from { stroke-dashoffset: var(--gauge-circumference); } to { stroke-dashoffset: var(--gauge-offset); } }
+@keyframes pulse-ring { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }
+@keyframes draw-line { from { width: 0; } to { width: 100%; } }
+@keyframes flyDoc {
+  0% { transform: translateX(0) translateY(-50%) scale(1); opacity: 0.4; }
+  50% { transform: translateX(30px) translateY(-50%) scale(1.1); opacity: 0.8; }
+  100% { transform: translateX(60px) translateY(-50%) scale(1); opacity: 0; }
+}
+
+.animate-fade-in { animation: fade-in 0.3s ease forwards; }
+.animate-slide-up { animation: slide-up 0.35s ease forwards; }
+.animate-scale-in { animation: scale-in 0.3s ease forwards; }
+
+/* Staggered children */
+.stagger > * { animation: slide-up 0.35s ease forwards; opacity: 0; }
+.stagger > *:nth-child(1) { animation-delay: 0s; }
+.stagger > *:nth-child(2) { animation-delay: 0.05s; }
+.stagger > *:nth-child(3) { animation-delay: 0.1s; }
+.stagger > *:nth-child(4) { animation-delay: 0.15s; }
+.stagger > *:nth-child(5) { animation-delay: 0.2s; }
+.stagger > *:nth-child(6) { animation-delay: 0.25s; }
+.stagger > *:nth-child(7) { animation-delay: 0.3s; }
+.stagger > *:nth-child(8) { animation-delay: 0.35s; }
+
+/* ── Stepper Pipeline ───────────────────────────────────────── */
+.stepper-node {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600;
+  border: 2px solid var(--border-default);
+  background: var(--bg-surface-1);
+  color: var(--text-muted);
+  transition: all 0.4s ease;
+  position: relative;
+}
+.stepper-node-active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-muted);
+}
+.stepper-node-active::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+.stepper-node-complete {
+  border-color: var(--success);
+  background: var(--success);
+  color: white;
+}
+.stepper-node-error {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: white;
+}
+.stepper-line {
+  height: 2px;
+  flex: 1;
+  background: var(--border-default);
+  transition: background 0.4s ease;
+}
+.stepper-line-complete { background: var(--success); }
+
+/* ── Status Dots ────────────────────────────────────────────── */
+.status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.status-dot-online { background: var(--success); box-shadow: 0 0 6px var(--success); }
+
+/* ── Badge ──────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 99px;
+  font-size: 11px; font-weight: 500;
+}
+
+/* ── Upload Zone ────────────────────────────────────────────── */
+.upload-zone {
+  border: 1px dashed var(--border-default);
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+.upload-zone:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-surface-1);
+}
+.upload-zone-active {
+  border-color: var(--accent);
+  background: var(--accent-muted);
+  border-style: solid;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 8px 18px; border-radius: 8px;
+  font-size: 12px; font-weight: 600;
+  background: var(--accent); color: white;
+  border: none; cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-outline {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 8px 18px; border-radius: 8px;
+  font-size: 12px; font-weight: 600;
+  background: transparent; color: var(--text-secondary);
+  border: 1px solid var(--border-default); cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-outline:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.btn-outline:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Metric Label ──────────────────────────────────────────── */
+.metric-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+

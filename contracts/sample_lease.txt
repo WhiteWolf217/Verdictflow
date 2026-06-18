@@ -1,0 +1,112 @@
+COMMERCIAL LEASE AGREEMENT
+
+This Commercial Lease Agreement ("Lease") is made and entered into as of March 1, 2025, by and between:
+
+LANDLORD: Meridian Properties Holdings LLC, a California limited liability company, with its principal office at 1 Embarcadero Center, Suite 3800, San Francisco, CA 94111 ("Landlord")
+
+TENANT: DataStream Analytics Corp., a Delaware corporation, with its principal office at 222 Kearny Street, Floor 5, San Francisco, CA 94108 ("Tenant")
+
+ARTICLE 1 — PREMISES
+
+1.1 Landlord hereby leases to Tenant, and Tenant leases from Landlord, approximately 8,500 square feet of office space on the 12th floor of the building located at 350 California Street, San Francisco, CA 94104 ("Premises"), as outlined in Exhibit A.
+
+1.2 Tenant's proportionate share of the Building is 4.2%.
+
+ARTICLE 2 — TERM
+
+2.1 The initial lease term ("Initial Term") shall commence on May 1, 2025 ("Commencement Date") and expire on April 30, 2030 (five years).
+
+2.2 Tenant shall have one (1) option to renew for an additional five (5) year term, provided Tenant gives written notice at least twelve (12) months prior to the expiration of the Initial Term. Renewal rent shall be the greater of: (a) the then-current Base Rent increased by 15%, or (b) the prevailing market rate as determined solely by Landlord.
+
+ARTICLE 3 — RENT
+
+3.1 Base Rent: Tenant shall pay monthly base rent as follows:
+   Year 1: $72.00 per square foot per annum ($51,000/month)
+   Year 2: $75.60 per square foot per annum ($53,550/month)
+   Year 3: $79.38 per square foot per annum ($56,244/month)
+   Year 4: $83.35 per square foot per annum ($59,056/month)
+   Year 5: $87.52 per square foot per annum ($61,993/month)
+
+3.2 Rent shall be due on the first day of each calendar month without notice, demand, deduction, or offset.
+
+3.3 Late Payment: If rent is not received by the fifth (5th) day of the month, Tenant shall pay a late fee of 8% of the overdue amount plus interest at 1.5% per month on the unpaid balance.
+
+3.4 Security Deposit: Tenant shall deposit $153,000 (three months' initial rent) with Landlord upon execution. Landlord may commingle the deposit with its general funds and shall not be required to pay interest thereon.
+
+ARTICLE 4 — OPERATING EXPENSES
+
+4.1 In addition to Base Rent, Tenant shall pay its proportionate share (4.2%) of all Building Operating Expenses exceeding the Base Year (2025) amount.
+
+4.2 "Operating Expenses" shall include but not be limited to: real estate taxes, insurance, utilities, management fees (up to 6% of gross revenues), maintenance, repairs, security, capital improvements amortized over their useful life, and any assessments.
+
+4.3 Landlord shall provide Tenant with an annual estimate of Operating Expenses. If actual expenses exceed the estimate, Tenant shall pay the difference within thirty (30) days of receipt of Landlord's statement. Tenant waives any right to audit Landlord's books and records related to Operating Expenses.
+
+ARTICLE 5 — USE AND COMPLIANCE
+
+5.1 Tenant shall use the Premises solely for general office purposes consistent with a technology company.
+
+5.2 Tenant shall comply with all applicable laws, regulations, and building rules at Tenant's sole cost and expense, including any retrofitting or modifications required by future changes in law.
+
+ARTICLE 6 — MAINTENANCE AND REPAIRS
+
+6.1 Tenant shall maintain the Premises in good condition and repair at Tenant's expense, including all interior walls, floors, ceilings, plumbing, electrical, HVAC systems serving the Premises, and plate glass.
+
+6.2 Landlord shall maintain the Building structure, roof, common areas, and building systems, the cost of which shall be included in Operating Expenses.
+
+6.3 In the event of damage to the Premises caused by casualty, Landlord may elect to terminate the Lease if restoration would take more than ninety (90) days, without obligation to compensate Tenant for lost business or relocation costs.
+
+ARTICLE 7 — ALTERATIONS
+
+7.1 Tenant shall not make any alterations, additions, or improvements without Landlord's prior written consent, which may be withheld in Landlord's sole and absolute discretion.
+
+7.2 All alterations, whether or not made with Landlord's consent, shall become Landlord's property upon installation and shall remain upon the Premises at the expiration of the Lease.
+
+7.3 Landlord may require Tenant to remove any or all alterations at Lease expiration and restore the Premises to their original condition, at Tenant's sole cost.
+
+ARTICLE 8 — ASSIGNMENT AND SUBLETTING
+
+8.1 Tenant shall not assign this Lease or sublet all or any portion of the Premises without Landlord's prior written consent, which may be withheld in Landlord's sole discretion.
+
+8.2 In the event Landlord consents to an assignment or subletting, Landlord shall be entitled to fifty percent (50%) of any profit realized by Tenant from such transaction.
+
+8.3 No assignment or subletting shall release Tenant from its obligations under this Lease.
+
+ARTICLE 9 — INSURANCE AND INDEMNIFICATION
+
+9.1 Tenant shall maintain commercial general liability insurance with limits of not less than $3,000,000 per occurrence and $5,000,000 aggregate, naming Landlord as an additional insured.
+
+9.2 Tenant shall indemnify, defend, and hold harmless Landlord from all claims, damages, and liabilities arising from Tenant's use of the Premises, including claims arising from Landlord's own negligence (except gross negligence or willful misconduct).
+
+ARTICLE 10 — DEFAULT AND REMEDIES
+
+10.1 Events of Default include: (a) failure to pay rent within five (5) days of due date; (b) failure to perform any other covenant within ten (10) days after notice; (c) Tenant's bankruptcy or insolvency.
+
+10.2 Upon default, Landlord may: (a) terminate the Lease and recover all unpaid rent for the remainder of the term; (b) re-enter and take possession; (c) accelerate all remaining rent due under the Lease.
+
+10.3 Tenant shall pay all of Landlord's costs of enforcement, including reasonable attorneys' fees and court costs.
+
+10.4 Tenant hereby waives any right to cure a monetary default beyond the five (5) day period stated above.
+
+ARTICLE 11 — SUBORDINATION
+
+11.1 This Lease is and shall be subordinate to any mortgage, deed of trust, or ground lease now or hereafter encumbering the Building. Tenant agrees to execute any subordination agreement reasonably required by Landlord's lender.
+
+ARTICLE 12 — ENVIRONMENTAL
+
+12.1 Tenant shall be solely responsible for any environmental contamination in, on, or under the Premises during the Lease term, regardless of the source of contamination.
+
+ARTICLE 13 — GOVERNING LAW
+
+This Lease shall be governed by the laws of the State of California.
+
+IN WITNESS WHEREOF, the parties have executed this Lease as of the date first written above.
+
+LANDLORD: Meridian Properties Holdings LLC
+By: ___________________________
+Name: Robert J. Kellner
+Title: Managing Member
+
+TENANT: DataStream Analytics Corp.
+By: ___________________________
+Name: Priya Patel
+Title: Chief Executive Officer

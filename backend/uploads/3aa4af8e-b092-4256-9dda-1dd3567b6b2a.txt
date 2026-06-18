@@ -1,0 +1,119 @@
+NON-DISCLOSURE AGREEMENT
+
+This Non-Disclosure Agreement ("Agreement") is entered into as of January 15, 2026 ("Effective Date") by and between:
+
+PARTY A: TechVenture Corp., a Delaware corporation with its principal place of business at 500 Innovation Drive, San Francisco, CA 94107 ("Disclosing Party")
+
+PARTY B: GlobalPartners LLC, a New York limited liability company with its principal place of business at 200 Park Avenue, New York, NY 10166 ("Receiving Party")
+
+ARTICLE 1. PURPOSE
+
+The Disclosing Party intends to disclose certain confidential and proprietary information to the Receiving Party for the purpose of evaluating a potential business relationship, strategic partnership, or joint venture between the parties ("Purpose").
+
+ARTICLE 2. DEFINITION OF CONFIDENTIAL INFORMATION
+
+2.1 "Confidential Information" shall mean any and all information or data, in any form or medium, that is disclosed by the Disclosing Party to the Receiving Party, whether orally, in writing, electronically, or by any other means, including but not limited to:
+
+(a) Trade secrets, inventions, patent applications, and intellectual property;
+(b) Business plans, strategies, marketing plans, and financial projections;
+(c) Customer lists, vendor relationships, and pricing information;
+(d) Software code, algorithms, technical specifications, and designs;
+(e) Employee information, compensation data, and organizational structure;
+(f) Any information marked as "Confidential," "Proprietary," or similar designation.
+
+2.2 Confidential Information shall not include information that:
+
+(a) Is or becomes publicly available through no fault of the Receiving Party;
+(b) Was already known to the Receiving Party prior to disclosure;
+(c) Is independently developed by the Receiving Party without use of Confidential Information;
+(d) Is rightfully received from a third party without restriction.
+
+ARTICLE 3. OBLIGATIONS OF THE RECEIVING PARTY
+
+3.1 The Receiving Party agrees to hold all Confidential Information in strict confidence and shall not disclose such information to any third party without the prior written consent of the Disclosing Party.
+
+3.2 The Receiving Party shall use the Confidential Information solely for the Purpose described herein and for no other purpose whatsoever.
+
+3.3 The Receiving Party shall protect the Confidential Information using the same degree of care it uses to protect its own confidential information, but in no event less than reasonable care.
+
+3.4 The Receiving Party may disclose Confidential Information only to its employees, agents, and contractors who have a need to know and who are bound by confidentiality obligations at least as restrictive as those set forth herein.
+
+ARTICLE 4. INTELLECTUAL PROPERTY
+
+4.1 All Confidential Information shall remain the exclusive property of the Disclosing Party. This Agreement does not grant the Receiving Party any license or rights in the Confidential Information except as expressly set forth herein.
+
+4.2 Any inventions, improvements, or derivative works created by the Receiving Party using the Confidential Information shall be the sole and exclusive property of the Disclosing Party, and the Receiving Party hereby assigns all such rights to the Disclosing Party.
+
+ARTICLE 5. TERM AND TERMINATION
+
+5.1 This Agreement shall become effective as of the Effective Date and shall continue for a period of three (3) years, unless earlier terminated by either party upon thirty (30) days' written notice.
+
+5.2 The obligations of confidentiality set forth in this Agreement shall survive the termination of this Agreement for a period of five (5) years from the date of termination.
+
+5.3 Upon termination or expiration of this Agreement, or upon request by the Disclosing Party, the Receiving Party shall promptly return or destroy all copies of the Confidential Information in its possession.
+
+ARTICLE 6. REMEDIES
+
+6.1 The Receiving Party acknowledges that any breach of this Agreement may cause irreparable harm to the Disclosing Party and that monetary damages may be inadequate. Therefore, the Disclosing Party shall be entitled to seek injunctive relief, in addition to any other remedies available at law or in equity.
+
+6.2 In the event of any breach, the Receiving Party shall be liable for all damages, including consequential and punitive damages, without limitation.
+
+6.3 The prevailing party in any legal action arising from this Agreement shall be entitled to recover its reasonable attorneys' fees and costs.
+
+ARTICLE 7. INDEMNIFICATION
+
+7.1 The Receiving Party shall indemnify, defend, and hold harmless the Disclosing Party, its officers, directors, employees, agents, and affiliates from and against any and all claims, damages, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to any breach of this Agreement by the Receiving Party.
+
+ARTICLE 8. NON-COMPETE AND NON-SOLICITATION
+
+8.1 During the term of this Agreement and for a period of two (2) years following termination, the Receiving Party shall not, directly or indirectly, engage in any business that competes with the business of the Disclosing Party within any geographic region where the Disclosing Party conducts business.
+
+8.2 During the term of this Agreement and for a period of one (1) year following termination, the Receiving Party shall not solicit, hire, or attempt to hire any employee of the Disclosing Party.
+
+ARTICLE 9. DATA PROTECTION
+
+9.1 To the extent that any Confidential Information constitutes personal data as defined under applicable data protection laws, the Receiving Party shall process such data in accordance with all applicable laws and regulations.
+
+9.2 The Receiving Party shall implement appropriate technical and organizational measures to protect personal data against unauthorized or unlawful processing, accidental loss, destruction, or damage.
+
+ARTICLE 10. LIMITATION OF LIABILITY
+
+10.1 Except in cases of willful misconduct or gross negligence, neither party's total aggregate liability under this Agreement shall exceed the sum of ten thousand dollars ($10,000).
+
+ARTICLE 11. GOVERNING LAW AND DISPUTE RESOLUTION
+
+11.1 This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of laws principles.
+
+11.2 Any disputes arising out of or relating to this Agreement shall be resolved through binding arbitration in San Francisco, California, administered by the American Arbitration Association under its Commercial Arbitration Rules.
+
+11.3 The arbitrator's decision shall be final and binding, and judgment on the award may be entered in any court of competent jurisdiction.
+
+ARTICLE 12. GENERAL PROVISIONS
+
+12.1 Entire Agreement. This Agreement constitutes the entire agreement between the parties with respect to the subject matter hereof and supersedes all prior negotiations, representations, and agreements.
+
+12.2 Amendment. This Agreement may not be amended or modified except by a written instrument signed by both parties.
+
+12.3 Waiver. The failure of either party to enforce any provision of this Agreement shall not constitute a waiver of such provision or the right to enforce it at a later time.
+
+12.4 Severability. If any provision of this Agreement is held to be invalid or unenforceable, the remaining provisions shall remain in full force and effect.
+
+12.5 Assignment. The Receiving Party may not assign this Agreement or any of its rights or obligations hereunder without the prior written consent of the Disclosing Party. Any purported assignment in violation of this section shall be null and void.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
+
+DISCLOSING PARTY:
+TechVenture Corp.
+
+By: _________________________
+Name: Sarah Chen
+Title: Chief Executive Officer
+Date: January 15, 2026
+
+RECEIVING PARTY:
+GlobalPartners LLC
+
+By: _________________________
+Name: Michael Rodriguez
+Title: Managing Partner
+Date: January 15, 2026

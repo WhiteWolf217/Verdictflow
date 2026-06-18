@@ -1,0 +1,108 @@
+EMPLOYMENT AGREEMENT
+
+This Employment Agreement ("Agreement") is entered into effective as of April 1, 2025, by and between:
+
+Quantum Dynamics Inc. ("Company"), a Delaware corporation with its principal place of business at 2100 Geng Road, Suite 210, Palo Alto, CA 94303
+
+and
+
+Dr. James R. Thornton ("Employee"), an individual residing at 891 Middlefield Road, Palo Alto, CA 94301.
+
+RECITALS
+
+WHEREAS, Company wishes to employ Employee as Vice President of Engineering, and Employee wishes to accept such employment, subject to the terms and conditions set forth herein.
+
+1. POSITION AND DUTIES
+
+1.1 Employee shall serve as Vice President of Engineering, reporting to the Chief Technology Officer. Employee's duties shall include leading the engineering team, overseeing product development, and such other duties as may be assigned by the CTO or CEO from time to time.
+
+1.2 Employee shall devote substantially all of Employee's business time, attention, and energy to the performance of Employee's duties. Employee shall not engage in any other business activity, whether or not for compensation, without the Company's prior written consent.
+
+1.3 Employee's primary work location shall be the Company's Palo Alto office. Employee may work remotely up to two (2) days per week, subject to change at Company's sole discretion.
+
+2. COMPENSATION
+
+2.1 Base Salary: Employee shall receive an annual base salary of $285,000, payable in accordance with the Company's standard payroll practices. The base salary shall be reviewed annually but Company is under no obligation to increase it.
+
+2.2 Performance Bonus: Employee shall be eligible for an annual performance bonus of up to 30% of base salary, based on achievement of objectives set by the CEO. Bonus determination shall be in the sole discretion of the Company's Board.
+
+2.3 Equity: Employee shall receive a stock option grant of 50,000 shares of common stock at the fair market value on the date of grant, vesting over four (4) years with a one-year cliff, subject to the Company's Equity Incentive Plan.
+
+2.4 Benefits: Employee shall be eligible to participate in all employee benefit plans offered by the Company, including health insurance, 401(k), and PTO, subject to the terms of each plan.
+
+3. TERM AND TERMINATION
+
+3.1 This Agreement shall commence on the Effective Date and continue as an at-will employment. Either party may terminate this Agreement at any time, with or without cause, and with or without notice.
+
+3.2 Termination Without Cause: If Company terminates Employee's employment without Cause (as defined below), Employee shall receive: (a) continued base salary for six (6) months; (b) COBRA premium payments for six (6) months; and (c) acceleration of vesting for shares that would have vested in the six (6) months following termination. Such severance is conditioned on Employee signing a general release of claims.
+
+3.3 Termination for Cause: "Cause" means: (a) material breach of this Agreement; (b) conviction of a felony; (c) willful misconduct or gross negligence; (d) failure to meet performance objectives as determined by the Board in its sole discretion; (e) any act that brings the Company into public disrepute. Upon termination for Cause, Employee shall receive only accrued salary through the date of termination.
+
+3.4 Resignation: Employee may resign upon thirty (30) days' written notice. Upon resignation, Employee forfeits any unvested equity and is not entitled to severance.
+
+4. INTELLECTUAL PROPERTY
+
+4.1 All inventions, discoveries, developments, improvements, works of authorship, and trade secrets conceived, made, or reduced to practice by Employee during the term of employment, whether or not during working hours or using Company resources, that relate in any way to the Company's current or anticipated business ("Company IP"), shall be the sole and exclusive property of the Company.
+
+4.2 Employee hereby assigns to the Company all right, title, and interest in and to any Company IP, including all patent rights, copyrights, and trade secret rights.
+
+4.3 Employee represents that Exhibit B lists all inventions, if any, that Employee made prior to employment and wishes to exclude from this Agreement.
+
+5. CONFIDENTIALITY
+
+5.1 Employee acknowledges that during employment, Employee will have access to and become familiar with Confidential Information of the Company. "Confidential Information" includes all non-public information relating to the Company's business, technology, customers, financial data, strategies, and trade secrets.
+
+5.2 Employee shall not, during or after employment, disclose or use any Confidential Information except as necessary in the performance of Employee's duties.
+
+5.3 Upon termination, Employee shall immediately return all Company property, documents, and materials, including electronic copies.
+
+6. NON-COMPETITION
+
+6.1 During employment and for a period of twenty-four (24) months following termination for any reason, Employee shall not, directly or indirectly, engage in, own, manage, operate, consult for, or be employed by any business that competes with the Company within a 100-mile radius of any Company office or anywhere the Company conducts business.
+
+6.2 For purposes of this Section, "competes" means any business engaged in quantum computing hardware, quantum software development, quantum simulation, or related fields.
+
+6.3 Employee acknowledges that the restrictions in this Section are reasonable and necessary to protect the Company's legitimate business interests.
+
+7. NON-SOLICITATION
+
+7.1 For a period of twenty-four (24) months following termination, Employee shall not directly or indirectly: (a) solicit, recruit, or hire any Company employee or contractor; (b) solicit or attempt to divert any Company customer, client, or business partner.
+
+7.2 Violation of this Section shall entitle the Company to injunctive relief and liquidated damages equal to Employee's last twelve (12) months of total compensation.
+
+8. DISPUTE RESOLUTION
+
+8.1 Any dispute arising out of or relating to this Agreement shall be resolved by binding arbitration in Santa Clara County, California, under the rules of JAMS. The arbitrator's award shall be final and binding.
+
+8.2 Each party shall bear its own costs and attorneys' fees.
+
+8.3 Employee waives the right to participate in any class action or collective action against the Company.
+
+9. CLAWBACK
+
+9.1 In the event Employee violates any provision of Sections 5, 6, or 7, Company shall be entitled to recover all severance payments, bonus payments made in the prior 24 months, and the value of any equity that vested in the prior 24 months.
+
+10. GOVERNING LAW
+
+This Agreement shall be governed by and construed in accordance with the laws of the State of California.
+
+11. MISCELLANEOUS
+
+11.1 This Agreement constitutes the entire agreement and supersedes all prior agreements and understandings.
+
+11.2 This Agreement may be modified only by a written instrument signed by both parties.
+
+11.3 If any provision is found to be unenforceable, the remaining provisions shall remain in full force and effect.
+
+11.4 Company may assign this Agreement without Employee's consent in connection with a merger, acquisition, or sale of substantially all assets.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
+
+QUANTUM DYNAMICS INC.
+By: ___________________________
+Name: Lisa M. Rodriguez
+Title: Chief Executive Officer
+
+EMPLOYEE:
+___________________________
+Dr. James R. Thornton

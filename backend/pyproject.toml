@@ -1,0 +1,84 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "verdictflow-backend"
+version = "0.1.0"
+description = "VerdictFlow — Multi-Agent Contract Intelligence System"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    # ── Web Framework ──
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "sse-starlette>=2.1.0",
+    "python-multipart>=0.0.9",
+
+    # ── LLM Clients (used directly by every agent) ──
+    "anthropic>=0.39.0",
+    "openai>=1.50.0",  # also drives the Featherless OpenAI-compatible endpoint
+
+    # ── Vector Store (the [fastembed] extra provides local CPU embeddings) ──
+    "qdrant-client[fastembed]>=1.12.0",
+
+    # ── Document Processing ──
+    "pymupdf>=1.24.0",
+    "python-docx>=1.1.0",
+
+    # ── Utilities ──
+    "pydantic>=2.9.0",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.27.0",
+]
+
+# Explicit package discovery — the backend is a flat layout with several
+# top-level packages plus main.py, which setuptools' auto-discovery refuses.
+[tool.setuptools]
+py-modules = ["main"]
+
+[tool.setuptools.packages.find]
+include = ["agents*", "api*", "band*", "core*", "models*", "utils*"]
+exclude = ["tests*", ".venv*"]
+
+[project.optional-dependencies]
+# Optional agent-framework integrations. The agents run on direct Anthropic /
+# OpenAI SDK calls by default and do NOT import these at runtime; they are
+# declared for teams that want the framework-native code paths. This tree is
+# large and tightly pinned — install only if you need it:
+#   pip install -e .[frameworks]
+frameworks = [
+    "langgraph>=0.2.0",
+    "langchain>=0.3.0",
+    "langchain-anthropic>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "langchain-community>=0.3.0",
+    "crewai>=0.80.0",
+    "pydantic-ai>=0.0.30",
+]
+# AgentOps observability — imported lazily under try/except, safe to omit.
+observability = [
+    "agentops>=0.3.0",
+]
+# Band SDK coordination layer. Not on public PyPI — install from your Band
+# workspace's index/source if available. The app runs without it: the Band
+# client falls back to fully-functional in-memory case rooms.
+band = [
+    "band-sdk[langgraph]>=0.1.0",
+]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.6.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

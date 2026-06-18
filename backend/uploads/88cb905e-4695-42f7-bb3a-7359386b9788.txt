@@ -1,0 +1,238 @@
+SOFTWARE AS A SERVICE (SaaS) AGREEMENT
+
+This Software as a Service Agreement ("Agreement") is entered into as of
+January 15, 2025 (the "Effective Date"), by and between:
+
+CloudStack Solutions, Inc., a Delaware corporation with offices at
+1500 Technology Drive, Suite 400, San Francisco, CA 94105 ("Vendor")
+
+and
+
+Meridian Enterprises LLC, a Texas limited liability company with offices at
+2200 Commerce Boulevard, Dallas, TX 75201 ("Customer").
+
+WHEREAS, Vendor provides a cloud-based enterprise resource planning platform
+known as "CloudStack ERP" (the "Service"); and
+
+WHEREAS, Customer desires to subscribe to and use the Service pursuant to the
+terms and conditions of this Agreement;
+
+NOW, THEREFORE, in consideration of the mutual covenants herein, the parties agree:
+
+
+1. DEFINITIONS
+
+1.1 "Authorized Users" means Customer's employees, contractors, and agents
+authorized by Customer to access and use the Service under this Agreement.
+
+1.2 "Customer Data" means all data, information, content, and materials that
+Customer or its Authorized Users upload, transmit, or store through the Service.
+
+1.3 "Documentation" means Vendor's standard user manuals, online help, and
+technical specifications for the Service.
+
+1.4 "Service Level Agreement" or "SLA" means the uptime and performance
+commitments set forth in Exhibit A.
+
+1.5 "Subscription Term" has the meaning set forth in Section 8.1.
+
+
+2. GRANT OF LICENSE AND ACCESS
+
+2.1 Subject to the terms of this Agreement and payment of all applicable Fees,
+Vendor grants Customer a non-exclusive, non-transferable, limited right to
+access and use the Service during the Subscription Term solely for Customer's
+internal business operations.
+
+2.2 Customer may provision up to 500 Authorized Users during the initial term.
+Additional users may be added at Vendor's then-current per-user pricing.
+
+2.3 Customer shall not: (a) sublicense, sell, or transfer access to the
+Service; (b) reverse engineer, decompile, or disassemble the Service;
+(c) use the Service in violation of applicable law; (d) interfere with or
+disrupt the integrity of the Service.
+
+
+3. FEES AND PAYMENT
+
+3.1 Customer shall pay Vendor an annual subscription fee of $180,000 USD
+("Base Fee"), invoiced annually in advance.
+
+3.2 All undisputed invoices are payable within sixty (60) days of receipt
+(Net-60). Late payments shall bear interest at the lesser of 1.5% per month
+or the maximum rate permitted by applicable law.
+
+3.3 Fees are exclusive of all taxes. Customer is responsible for all
+applicable sales, use, value-added, and similar taxes.
+
+3.4 Vendor may increase Fees upon renewal by providing at least thirty (30)
+days' written notice prior to the start of any renewal term. Fee increases
+shall not exceed 15% per renewal term.
+
+
+4. SERVICE LEVELS AND SUPPORT
+
+4.1 Vendor shall use commercially reasonable efforts to maintain availability
+of the Service in accordance with the SLA attached as Exhibit A.
+
+4.2 Vendor targets 99.5% monthly uptime, excluding scheduled maintenance
+windows. No service credits or remedies are provided for downtime.
+
+4.3 Vendor shall provide Customer with standard email support during business
+hours (9 AM - 5 PM PT, Monday through Friday). Premium 24/7 support is
+available for an additional annual fee of $24,000.
+
+
+5. CUSTOMER DATA AND PRIVACY
+
+5.1 As between the parties, Customer retains all right, title, and interest
+in and to Customer Data.
+
+5.2 Vendor shall process Customer Data solely to provide the Service and in
+accordance with Vendor's then-current Privacy Policy.
+
+5.3 Upon termination, Vendor shall delete all Customer Data within ninety
+(90) days. Customer may request data export in standard CSV format prior
+to termination.
+
+
+6. INTELLECTUAL PROPERTY
+
+6.1 All work product, modifications, enhancements, derivative works, and
+any inventions conceived during the performance of this Agreement, whether
+or not related to Customer's business, are the sole and exclusive property
+of the Vendor.
+
+6.2 Customer is granted no rights to Vendor's intellectual property except
+the limited license expressly set forth in Section 2.
+
+6.3 Any feedback, suggestions, or ideas provided by Customer to Vendor
+regarding the Service shall become the exclusive property of Vendor, and
+Vendor may use such feedback for any purpose without obligation or
+compensation to Customer.
+
+
+7. CONFIDENTIALITY
+
+7.1 All information disclosed by either party that is designated as
+"Confidential" or that reasonably should be understood to be confidential
+shall be treated as Confidential Information.
+
+7.2 The Receiving Party's confidentiality obligations under this Section
+shall survive in perpetuity and shall not expire upon termination of this
+Agreement. The Receiving Party shall protect Confidential Information
+using the highest degree of care.
+
+7.3 Confidential Information may not be disclosed to any third party
+without the prior written consent of the Disclosing Party, with no
+exceptions.
+
+
+8. TERM AND TERMINATION
+
+8.1 This Agreement shall commence on the Effective Date and continue for
+an initial term of three (3) years (the "Initial Term").
+
+8.2 This Agreement shall automatically renew for successive one (1) year
+terms unless either party gives written notice of non-renewal at least
+seven (7) days before the end of the then-current term. Failure to cancel
+shall constitute acceptance of the renewal and all applicable fee increases.
+
+8.3 Vendor may terminate this Agreement immediately upon written notice if
+Customer fails to pay any undisputed amount within fifteen (15) days of its
+due date, without any cure period.
+
+8.4 Upon termination for any reason, Customer shall pay all outstanding Fees
+for the remainder of the then-current term, regardless of the reason for
+termination.
+
+
+9. LIMITATION OF LIABILITY
+
+9.1 IN NO EVENT SHALL VENDOR'S TOTAL AGGREGATE LIABILITY UNDER THIS
+AGREEMENT EXCEED ONE HUNDRED DOLLARS ($100.00 USD), REGARDLESS OF THE
+NATURE OF THE CLAIM.
+
+9.2 IN NO EVENT SHALL VENDOR BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
+SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO
+LOSS OF PROFITS, DATA, BUSINESS OPPORTUNITIES, OR GOODWILL.
+
+9.3 The limitations in this Section shall apply regardless of whether Vendor
+has been advised of the possibility of such damages and notwithstanding the
+failure of essential purpose of any limited remedy.
+
+
+10. INDEMNIFICATION
+
+10.1 Customer shall indemnify, defend, and hold harmless Vendor and its
+officers, directors, employees, agents, affiliates, successors, and assigns
+from and against any and all claims, losses, damages, liabilities, penalties,
+costs, and expenses (including reasonable attorneys' fees) of any kind
+whatsoever arising out of or in connection with this Agreement, Customer's
+use of the Service, or any breach of this Agreement by Customer, regardless
+of cause.
+
+10.2 Vendor shall have no indemnification obligations to Customer under
+this Agreement.
+
+
+11. NON-COMPETE AND NON-SOLICITATION
+
+11.1 During the term of this Agreement and for a period of two (2) years
+following termination, Customer shall not, directly or indirectly, develop,
+market, sell, or distribute any software product that competes with the
+Service in any geographic market worldwide.
+
+11.2 During the term and for twenty-four (24) months thereafter, neither
+party shall solicit for employment any employee of the other party.
+
+
+12. GOVERNING LAW AND DISPUTE RESOLUTION
+
+12.1 This Agreement shall be governed by and construed in accordance with
+the laws of the State of Delaware, without regard to its conflict of laws
+principles.
+
+12.2 Any dispute arising out of this Agreement shall be resolved exclusively
+in the state or federal courts located in Wilmington, Delaware, and each
+party consents to personal jurisdiction therein.
+
+
+13. DATA PROCESSING
+
+13.1 To the extent Vendor processes personal data on behalf of Customer,
+the parties acknowledge that a Data Processing Agreement may be required
+under applicable data protection laws, but no such agreement is currently
+attached to or incorporated into this Agreement.
+
+
+14. GENERAL PROVISIONS
+
+14.1 This Agreement, together with any exhibits, constitutes the entire
+agreement between the parties regarding the subject matter hereof.
+
+14.2 Neither party may assign this Agreement without the prior written
+consent of the other party, except that Vendor may assign this Agreement
+in connection with a merger, acquisition, or sale of all or substantially
+all of its assets.
+
+14.3 If any provision of this Agreement is found to be unenforceable, the
+remaining provisions shall continue in full force and effect.
+
+14.4 Failure to enforce any provision of this Agreement shall not constitute
+a waiver of such provision.
+
+14.5 All notices under this Agreement shall be in writing and delivered by
+email with confirmation of receipt, or by certified mail.
+
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the
+Effective Date.
+
+
+CLOUDSTACK SOLUTIONS, INC.            MERIDIAN ENTERPRISES LLC
+
+By: ___________________________       By: ___________________________
+Name: Sarah Chen                      Name: Robert Thompson
+Title: Chief Executive Officer        Title: Chief Technology Officer
+Date: January 15, 2025                Date: January 15, 2025

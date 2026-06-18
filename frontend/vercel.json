@@ -1,0 +1,7 @@
+{
+  "env": {
+    "NEXT_PUBLIC_API_URL": "@verdictflow_api_url"
+  },
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next"
+}
