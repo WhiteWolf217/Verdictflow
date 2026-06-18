@@ -88,30 +88,13 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
   const [voiceOn, setVoiceOn] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecLike | null>(null);
-  const baseTextRef = useRef("");
+  const baseTextRef = useRef("");       // Text that was in the input BEFORE mic started
+  const finalTextRef = useRef("");      // Accumulated finalized speech text
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Skill history (persisted locally)
-  const [history, setHistory] = useState<number[]>([]);
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(SKILL_KEY);
-      if (raw) setHistory(JSON.parse(raw));
-    } catch { /* ignore */ }
-  }, []);
-
-  useEffect(() => {
-    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
-  }, [messages.length]);
-
-  const speak = (text: string) => {
-    if (!voiceOn || typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    try {
-      const u = new SpeechSynthesisUtterance(text);
-      u.rate = 1.05;
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(u);
-    } catch { /* ignore */ }
-  };
+  // Keep a ref to the latest setInput so the recognition callback always has the fresh setter
+  const setInputRef = useRef(setInput);
+  setInputRef.current = setInput;
 
   const toggleListen = () => {
     const w = window as unknown as {
@@ -135,29 +118,78 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
 
     // Capture what's already in the input field
     baseTextRef.current = input;
+    finalTextRef.current = "";
 
     rec.onresult = (e) => {
-      let interim = "";
-      let finalText = "";
+      let interimTranscript = "";
+      let sessionFinal = "";
+
       for (let i = 0; i < e.results.length; i++) {
         const result = e.results[i];
         const transcript = result[0].transcript;
         if (result.isFinal) {
-          finalText += transcript;
+          sessionFinal += transcript;
         } else {
-          interim += transcript;
+          interimTranscript += transcript;
         }
       }
-      // Show committed text + final transcription + live interim
+
+      // Update the accumulated final text
+      finalTextRef.current = sessionFinal;
+
+      // Build the full input: base text + finalized speech + live interim
       const base = baseTextRef.current;
-      const combined = (base ? base + " " : "") + finalText + interim;
-      setInput(combined);
+      const combined = [base, sessionFinal, interimTranscript]
+        .filter(Boolean)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      // Update the input via ref to avoid stale closures
+      setInputRef.current(combined);
+
+      // Also directly set the DOM value for immediate visual feedback
+      if (inputRef.current) {
+        inputRef.current.value = combined;
+      }
     };
-    rec.onend = () => setIsListening(false);
+    rec.onend = () => {
+      setIsListening(false);
+      // When recognition ends, commit the final text to input
+      const base = baseTextRef.current;
+      const final = finalTextRef.current;
+      if (final) {
+        const committed = [base, final].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+        setInputRef.current(committed);
+      }
+    };
     rec.onerror = () => setIsListening(false);
     recognitionRef.current = rec;
     setIsListening(true);
     rec.start();
+  };
+
+  // Skill history (persisted locally)
+  const [history, setHistory] = useState<number[]>([]);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SKILL_KEY);
+      if (raw) setHistory(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
+  }, [messages.length]);
+
+  const speak = (text: string) => {
+    if (!voiceOn || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1.05;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    } catch { /* ignore */ }
   };
 
   const handleDraftEmail = async () => {
@@ -449,6 +481,7 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
               {/* Input bar */}
               <div className="border-t border-zinc-800/50 p-3 flex gap-2 items-center">
                 <input
+                  ref={inputRef}
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
