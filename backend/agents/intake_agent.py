@@ -67,17 +67,19 @@ async def run_intake_agent(
     """
     logger.info(f"🚀 Intake Agent starting for '{filename}'")
 
-    # Step 1: Parse the document
-    parsed_doc = parse_contract(file_path, filename)
+    # Step 1: Parse the document (runs synchronous I/O — offload to thread)
+    import asyncio
+    parsed_doc = await asyncio.to_thread(parse_contract, file_path, filename)
     logger.info(f"📄 Parsed: {parsed_doc.page_count} pages, {parsed_doc.total_chars} chars")
 
     # Step 2: Chunk the document
-    chunks = chunk_document(parsed_doc)
+    chunks = await asyncio.to_thread(chunk_document, parsed_doc)
     logger.info(f"📦 Chunked: {len(chunks)} chunks")
 
-    # Step 3: Index into Qdrant
+    # Step 3: Index into Qdrant (runs FastEmbed on CPU — offload to thread)
     if vectorstore:
-        vectorstore.index_document(parsed_doc.doc_id, chunks)
+        import asyncio
+        await asyncio.to_thread(vectorstore.index_document, parsed_doc.doc_id, chunks)
         logger.info(f"📥 Indexed {len(chunks)} chunks into Qdrant")
 
     # Step 4: Classify and extract metadata using Claude

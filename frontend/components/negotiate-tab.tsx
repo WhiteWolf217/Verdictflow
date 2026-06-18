@@ -20,10 +20,19 @@ import RiskRadar from "@/components/risk-radar";
 
 const SKILL_KEY = "vf_negotiation_scores";
 
+interface SpeechRecResult {
+  transcript: string;
+}
+
+interface SpeechRecResultList extends ArrayLike<SpeechRecResult> {
+  isFinal: boolean;
+}
+
 interface SpeechRecLike {
   lang: string;
   interimResults: boolean;
-  onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void;
+  continuous: boolean;
+  onresult: (e: { results: ArrayLike<SpeechRecResultList> }) => void;
   onend: () => void;
   onerror: () => void;
   start: () => void;
@@ -79,6 +88,7 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
   const [voiceOn, setVoiceOn] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecLike | null>(null);
+  const baseTextRef = useRef("");
 
   // Skill history (persisted locally)
   const [history, setHistory] = useState<number[]>([]);
@@ -120,10 +130,28 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
     }
     const rec = new SR();
     rec.lang = "en-US";
-    rec.interimResults = false;
+    rec.interimResults = true;
+    try { rec.continuous = true; } catch { /* some browsers don't support continuous */ }
+
+    // Capture what's already in the input field
+    baseTextRef.current = input;
+
     rec.onresult = (e) => {
-      const text = e.results[0][0].transcript;
-      setInput((prev) => (prev ? prev + " " : "") + text);
+      let interim = "";
+      let finalText = "";
+      for (let i = 0; i < e.results.length; i++) {
+        const result = e.results[i];
+        const transcript = result[0].transcript;
+        if (result.isFinal) {
+          finalText += transcript;
+        } else {
+          interim += transcript;
+        }
+      }
+      // Show committed text + final transcription + live interim
+      const base = baseTextRef.current;
+      const combined = (base ? base + " " : "") + finalText + interim;
+      setInput(combined);
     };
     rec.onend = () => setIsListening(false);
     rec.onerror = () => setIsListening(false);

@@ -158,7 +158,8 @@ justification. Be assertive and human — like a real dealmaker, not a polite as
             user_prompt="Begin the negotiation. State your opening position.",
             temperature=0.6,
         )
-    except Exception:
+    except Exception as e:
+        logger.error(f"❌ Simulation start LLM failed: {e}")
         opening = f"As the {req.counterparty_role}, I believe the current contract terms are fair and reflect market standards. However, I'm open to discussing specific concerns you may have. What would you like to address first?"
 
     _sessions[session_id]["history"].append({
@@ -228,7 +229,8 @@ Respond as the {session['counterparty_role']}. React to what the user just said.
             user_prompt=user_prompt,
             temperature=0.6,
         )
-    except Exception:
+    except Exception as e:
+        logger.error(f"❌ Simulation turn LLM failed: {e}")
         response = "That's an interesting point. Let me consider it. Could you elaborate on what specific terms you're proposing?"
 
     response_clean = response.strip()

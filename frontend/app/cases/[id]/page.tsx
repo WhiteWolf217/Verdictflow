@@ -29,6 +29,7 @@ import NegotiateTab from "@/components/negotiate-tab";
 import BandAgents from "@/components/band-agents";
 import ContractChat from "@/components/contract-chat";
 import AgentBoardroom from "@/components/agent-boardroom";
+import LiveBoardroom from "@/components/live-boardroom";
 import AuditVerify from "@/components/audit-verify";
 import MoneyHero from "@/components/money-hero";
 import { downloadCounterDraft } from "@/lib/api";
@@ -43,7 +44,6 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "compliance", label: "Compliance" },
   { id: "redline", label: "Redline" },
   { id: "copilot", label: "Copilot" },
-  { id: "boardroom", label: "Boardroom" },
   { id: "negotiate", label: "Negotiate" },
   { id: "audit", label: "Audit Trail" },
 ];
@@ -165,7 +165,11 @@ export default function CaseDetailPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      {/* ═══ TWO-COLUMN LAYOUT: Main + Pinned Boardroom ═══ */}
+      <div className="flex gap-0 relative" style={{ minHeight: "calc(100vh - 56px)" }}>
+
+      {/* ── Left: Main Content ── */}
+      <main className="flex-1 min-w-0 px-6 py-8" style={{ maxWidth: "calc(100% - 340px)" }}>
         {/* Pipeline + Live Feed */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
           <div className="lg:col-span-3 surface-1 p-5">
@@ -479,19 +483,20 @@ export default function CaseDetailPage() {
             </div>
           )}
 
-          {/* ═══ COPILOT (RAG chat) ═══ */}
-          {activeTab === "copilot" && caseData && (
-            <ContractChat caseId={caseId} />
+          {/* ═══ COPILOT (RAG chat) — always mounted to preserve chat history ═══ */}
+          {caseData && (
+            <div style={{ display: activeTab === "copilot" ? "block" : "none" }}>
+              <ContractChat caseId={caseId} />
+            </div>
           )}
 
-          {/* ═══ BOARDROOM (agent debate) ═══ */}
-          {activeTab === "boardroom" && caseData && (
-            <AgentBoardroom caseId={caseId} />
-          )}
 
-          {/* ═══ NEGOTIATE ═══ */}
-          {activeTab === "negotiate" && caseData && (
-            <NegotiateTab caseData={caseData} />
+
+          {/* ═══ NEGOTIATE — always mounted to preserve session & coaching ═══ */}
+          {caseData && (
+            <div style={{ display: activeTab === "negotiate" ? "block" : "none" }}>
+              <NegotiateTab caseData={caseData} />
+            </div>
           )}
 
           {/* ═══ AUDIT ═══ */}
@@ -507,6 +512,16 @@ export default function CaseDetailPage() {
           )}
         </div>
       </main>
+
+      {/* ── Right: Pinned Live Boardroom ── */}
+      <aside
+        className="w-[340px] shrink-0 border-l border-zinc-800/60 bg-zinc-950/80 backdrop-blur-sm sticky top-[56px] hidden lg:flex flex-col"
+        style={{ height: "calc(100vh - 56px)" }}
+      >
+        <LiveBoardroom caseId={caseId} events={events} status={caseData?.status || "processing"} />
+      </aside>
+
+      </div>
     </div>
   );
 }
