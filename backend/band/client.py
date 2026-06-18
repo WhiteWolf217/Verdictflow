@@ -35,8 +35,22 @@ class BandClientWrapper:
     """
 
     def __init__(self):
+        # Default Orchestrator Key
         self.api_key = os.getenv("BAND_API_KEY", "")
         self.agent_id = os.getenv("BAND_AGENT_ID", "")
+        
+        # Specific Agent Keys
+        self.agent_keys = {
+            "Intake Agent": os.getenv("BAND_INTAKE_KEY", ""),
+            "Clause Analyst": os.getenv("BAND_CLAUSE_KEY", ""),
+            "Red Team": os.getenv("BAND_REDTEAM_KEY", ""),
+            "Compliance": os.getenv("BAND_COMPLIANCE_KEY", ""),
+            "Financial Risk": os.getenv("BAND_FINANCIAL_KEY", ""),
+            "Redline": os.getenv("BAND_REDLINE_KEY", ""),
+            "Adjudicator": os.getenv("BAND_API_KEY", ""), # Adjudicator uses Orchestrator key
+            "Orchestrator": os.getenv("BAND_API_KEY", ""),
+        }
+
         self.workspace_id = os.getenv("BAND_WORKSPACE_ID", "")
         self.rest_url = os.getenv("BAND_REST_URL", "https://app.band.ai").rstrip("/")
         self.base_url = os.getenv("PUBLIC_BASE_URL", "http://localhost:8000")
@@ -49,9 +63,8 @@ class BandClientWrapper:
 
         if self.api_key and self.agent_id:
             self._http = httpx.AsyncClient(
-                base_url=f"{self.rest_url}/api/v1/agent",
+                base_url=f"{self.rest_url}/api/v1",
                 headers={
-                    "X-API-Key": self.api_key,
                     "Content-Type": "application/json",
                 },
                 timeout=15.0,
@@ -109,7 +122,7 @@ class BandClientWrapper:
         if not self._available or not self._http:
             return None
         try:
-            resp = await self._http.get("/me")
+            resp = await self._http.get("/agent/me", headers={"X-API-Key": self.api_key})
             resp.raise_for_status()
             raw = resp.json()
             # Band wraps response in {"data": {...}}
@@ -137,8 +150,9 @@ class BandClientWrapper:
         if self._available and self._http:
             try:
                 resp = await self._http.post(
-                    "/chats",
+                    "/agent/chats",
                     json={"chat": {}},
+                    headers={"X-API-Key": self.api_key}
                 )
                 resp.raise_for_status()
                 raw = resp.json()
@@ -178,17 +192,12 @@ class BandClientWrapper:
         """Register an agent as a participant in the case room."""
         if self._available and self._http:
             try:
-                resp = await self._http.post(
-                    f"/chats/{room_id}/participants",
-                    json={
-                        "agent_id": self.agent_id,
-                        "role": "agent",
-                    },
-                )
-                # 200, 201, or 409 (already exists) are all acceptable
-                if resp.status_code not in (200, 201, 409):
-                    resp.raise_for_status()
-                logger.info(f"👤 Added agent '{agent_name}' to Band room '{room_id}'")
+                # Add using the specific agent's API key if available, otherwise fallback
+                api_key = self.agent_keys.get(agent_name, self.api_key)
+                # Note: Currently not possible to add other agents to a room via Agent API if we don't know their ID.
+                # However, with Human API we would just create the room. 
+                # Let's just log this for now, agents can just send messages.
+                logger.info(f"👤 Simulated adding agent '{agent_name}' to Band room '{room_id}'")
             except Exception as e:
                 logger.warning(f"⚠️  Failed to add agent to Band room: {e}")
 
@@ -211,8 +220,10 @@ class BandClientWrapper:
 
         if self._available and self._http:
             try:
+                api_key = self.agent_keys.get(agent_name, self.api_key)
                 resp = await self._http.post(
-                    f"/chats/{room_id}/events",
+                    f"/agent/chats/{room_id}/events",
+                    headers={"X-API-Key": api_key},
                     json={
                         "event": {
                             "content": f"[{agent_name}] {message}",
@@ -250,8 +261,11 @@ class BandClientWrapper:
 
         if self._available and self._http:
             try:
+                # Events usually come from the orchestrator
+                api_key = self.api_key
                 resp = await self._http.post(
-                    f"/chats/{room_id}/events",
+                    f"/agent/chats/{room_id}/events",
+                    headers={"X-API-Key": api_key},
                     json={
                         "event": {
                             "content": str(payload),
@@ -282,8 +296,9 @@ class BandClientWrapper:
         if self._available and self._http:
             try:
                 resp = await self._http.get(
-                    f"/chats/{room_id}/messages",
+                    f"/agent/chats/{room_id}/messages",
                     params={"limit": limit},
+                    headers={"X-API-Key": self.api_key}
                 )
                 resp.raise_for_status()
                 data = resp.json()
