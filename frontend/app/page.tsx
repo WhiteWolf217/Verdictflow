@@ -9,6 +9,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import UploadZone from "@/components/upload-zone";
 import StatusBadge from "@/components/status-badge";
+import VersionCompare from "@/components/version-compare";
 import { uploadContract, listCases, type CaseListItem } from "@/lib/api";
 
 export default function DashboardPage() {
@@ -16,6 +17,7 @@ export default function DashboardPage() {
   const [cases, setCases] = useState<CaseListItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"analyse" | "compare">("analyse");
 
   const fetchCases = useCallback(async () => {
     try {
@@ -76,13 +78,43 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Upload */}
-        <div className="max-w-xl mb-16 animate-slide-up" style={{ animationDelay: "0.05s" }}>
-          <UploadZone onUpload={handleUpload} isUploading={isUploading} />
-          {error && (
-            <div className="mt-3 px-3 py-2 rounded-lg bg-red-500/8 border border-red-500/15 text-red-400 text-[12px]">
-              {error}
+        {/* Mode Toggle */}
+        <div className="flex items-center gap-0 mb-6 animate-slide-up" style={{ animationDelay: "0.03s" }}>
+          <button
+            onClick={() => setMode("analyse")}
+            className={`px-4 py-2 text-[12px] font-semibold rounded-l-lg border transition-all ${
+              mode === "analyse"
+                ? "bg-blue-500/15 text-blue-400 border-blue-500/30"
+                : "bg-zinc-900 text-zinc-500 border-zinc-800 hover:text-zinc-400"
+            }`}
+          >
+            📋 Analyse Contract
+          </button>
+          <button
+            onClick={() => setMode("compare")}
+            className={`px-4 py-2 text-[12px] font-semibold rounded-r-lg border-y border-r transition-all ${
+              mode === "compare"
+                ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                : "bg-zinc-900 text-zinc-500 border-zinc-800 hover:text-zinc-400"
+            }`}
+          >
+            ⚖️ Compare Versions
+          </button>
+        </div>
+
+        {/* Upload / Compare */}
+        <div className="mb-16 animate-slide-up" style={{ animationDelay: "0.05s" }}>
+          {mode === "analyse" ? (
+            <div className="max-w-xl">
+              <UploadZone onUpload={handleUpload} isUploading={isUploading} />
+              {error && (
+                <div className="mt-3 px-3 py-2 rounded-lg bg-red-500/8 border border-red-500/15 text-red-400 text-[12px]">
+                  {error}
+                </div>
+              )}
             </div>
+          ) : (
+            <VersionCompare />
           )}
         </div>
 

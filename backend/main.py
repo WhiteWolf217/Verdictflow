@@ -115,6 +115,10 @@ app.include_router(negotiate_router)
 from api.features import router as features_router  # noqa: E402
 app.include_router(features_router)
 
+# Include contract version comparison
+from api.compare import router as compare_router  # noqa: E402
+app.include_router(compare_router)
+
 
 @app.get("/health")
 async def health_check():
