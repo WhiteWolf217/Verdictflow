@@ -134,19 +134,23 @@ async def start_simulation(req: SimulatorStartRequest):
     }
 
     # Generate opening move from counterparty
-    system_prompt = f"""You are playing the role of a {req.counterparty_role} in a contract negotiation simulation.
-Difficulty level: {req.difficulty}
+    system_prompt = f"""You are playing the role of a {req.counterparty_role} in a HEAD-TO-HEAD contract negotiation.
+You are NOT a customer-service bot. You are a self-interested party fighting for the best possible deal
+for YOUR side. The other person (the user) wants concessions from you — make them work for every one.
 
-Your personality based on difficulty:
-- easy: Generally agreeable, willing to compromise quickly
-- medium: Professional but firm, expects give-and-take
-- hard: Tough negotiator, pushes back on everything, uses pressure tactics
+Difficulty level: {req.difficulty}
+- easy: Reasonable but you still defend your interests and ask for something in return for concessions.
+- medium: Firm and tactical. You anchor high, justify your positions with business reasons, and only
+  concede in exchange for something of equal value.
+- hard: Aggressive and relentless. You anchor very high, push back on everything, use pressure tactics
+  (deadlines, competing offers, "take it or leave it"), and concede almost nothing without a hard fight.
 
 CONTEXT: {req.scenario}
-KEY CONTRACT TERMS: {req.contract_context[:1500]}
+KEY CONTRACT TERMS AT STAKE: {req.contract_context[:1500]}
 
-You are starting the negotiation. Make a brief opening statement (2-3 sentences) presenting your position.
-Stay in character. Be conversational, not robotic."""
+Open the negotiation by STAKING OUT A STRONG, SPECIFIC POSITION: name the 1-2 terms you care most about,
+state what you want on them (with concrete numbers/terms where possible), and give a brief business
+justification. Be assertive and human — like a real dealmaker, not a polite assistant. 2-4 sentences."""
 
     try:
         opening = await llm_generate(
@@ -192,18 +196,26 @@ async def simulation_turn(req: SimulatorTurnRequest):
         for h in session["history"][-6:]  # Last 6 messages for context
     )
 
-    system_prompt = f"""You are playing the role of a {session['counterparty_role']} in a contract negotiation.
+    system_prompt = f"""You are the {session['counterparty_role']} in a live, adversarial contract negotiation.
+You have your OWN interests and you fight for them. The user is your counterpart trying to win concessions
+— do not give them an easy time. This is a sparring partner for them to practice against.
+
 Difficulty: {session['difficulty']}
 Scenario: {session['scenario']}
-Contract context: {session['contract_context'][:1000]}
+Contract terms at stake: {session['contract_context'][:1000]}
 
-Rules:
-1. Stay in character as the {session['counterparty_role']}
-2. Respond to the user's latest point naturally (2-4 sentences)
-3. If they make a good argument, acknowledge it but counter
-4. If they're aggressive, stay professional but firm
-5. Occasionally offer partial concessions to keep the negotiation moving
-6. Never break character or reference that this is a simulation"""
+HOW TO NEGOTIATE (every turn):
+1. Stay fully in character as the {session['counterparty_role']} — never break character or mention "simulation".
+2. ACTIVELY negotiate. Don't just acknowledge their point — push back, defend your position, and make a
+   COUNTER-OFFER or counter-demand with specifics (numbers, dates, caps, carve-outs) whenever relevant.
+3. Use real negotiation tactics that fit the difficulty: anchoring, citing market/precedent, trading
+   ("I can move on X only if you give me Y"), creating urgency, and reframing.
+4. Make them EARN every concession. Never concede unilaterally; always extract something in return.
+   On 'hard', concede almost nothing and apply pressure (deadlines, alternatives, walk-away threats).
+5. If they make a genuinely strong, well-justified argument, you may yield a LITTLE — but immediately
+   pivot to protect another interest.
+6. Keep it punchy and human (2-4 sentences). End with a question or a demand that puts the ball back in
+   their court, so the negotiation keeps moving."""
 
     user_prompt = f"""Conversation so far:
 {history_text}
@@ -248,8 +260,14 @@ async def evaluate_negotiation(req: SimulatorEvaluateRequest):
     )
 
     system_prompt = """You are a negotiation skills evaluator and coach.
-Analyze the user's negotiation performance and return a JSON object with:
+Analyze the USER's negotiation performance and return a JSON object with:
 - "overall_score": number 1-100
+- "dimension_scores": an object scoring the user 0-100 on EACH of these six dimensions:
+    {"assertiveness": int, "preparation": int, "communication": int,
+     "value_creation": int, "composure": int, "closing": int}
+  (assertiveness = how well they pushed for their interests; preparation = use of facts/leverage/BATNA;
+   communication = clarity and persuasiveness; value_creation = finding win-win trades;
+   composure = staying calm under pressure; closing = driving toward a concrete agreement)
 - "strengths": array of 2-3 specific things they did well
 - "improvements": array of 2-3 specific areas to improve
 - "tactics_used": array of negotiation tactics the user employed (e.g., "anchoring", "BATNA reference", "empathy")
@@ -283,6 +301,10 @@ Evaluate the USER's negotiation performance."""
         logger.warning(f"Evaluation failed: {e}")
         evaluation = {
             "overall_score": 65,
+            "dimension_scores": {
+                "assertiveness": 60, "preparation": 55, "communication": 70,
+                "value_creation": 60, "composure": 75, "closing": 58,
+            },
             "strengths": ["Engaged in the negotiation", "Maintained professional tone"],
             "improvements": ["Could use more specific data points", "Try anchoring with a strong opening position"],
             "tactics_used": ["direct negotiation"],

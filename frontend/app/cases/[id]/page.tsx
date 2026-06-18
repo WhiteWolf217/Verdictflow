@@ -26,8 +26,14 @@ import AuditChainView from "@/components/audit-chain";
 import RiskGauge from "@/components/risk-gauge";
 import RiskRadar from "@/components/risk-radar";
 import NegotiateTab from "@/components/negotiate-tab";
+import BandAgents from "@/components/band-agents";
+import ContractChat from "@/components/contract-chat";
+import AgentBoardroom from "@/components/agent-boardroom";
+import AuditVerify from "@/components/audit-verify";
+import MoneyHero from "@/components/money-hero";
+import { downloadCounterDraft } from "@/lib/api";
 
-type TabId = "overview" | "findings" | "redteam" | "financial" | "compliance" | "redline" | "negotiate" | "audit";
+type TabId = "overview" | "findings" | "redteam" | "financial" | "compliance" | "redline" | "copilot" | "boardroom" | "negotiate" | "audit";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -36,6 +42,8 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "financial", label: "Financial" },
   { id: "compliance", label: "Compliance" },
   { id: "redline", label: "Redline" },
+  { id: "copilot", label: "Copilot" },
+  { id: "boardroom", label: "Boardroom" },
   { id: "negotiate", label: "Negotiate" },
   { id: "audit", label: "Audit Trail" },
 ];
@@ -237,6 +245,9 @@ export default function CaseDetailPage() {
           {/* ═══ OVERVIEW ═══ */}
           {activeTab === "overview" && caseData && (
             <>
+              {(rs?.total_financial_exposure || 0) > 0 && (
+                <MoneyHero amount={rs?.total_financial_exposure || 0} findings={rs?.total_findings || 0} />
+              )}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
                 {/* Risk Gauge */}
                 <div className="surface-1 p-6 flex items-center justify-center">
@@ -268,6 +279,9 @@ export default function CaseDetailPage() {
                   {radarData.length > 0 && <RiskRadar data={radarData} size={180} />}
                 </div>
               </div>
+
+              {/* 6 Agents on Band */}
+              <BandAgents caseId={caseId} />
 
               {/* Contract Info + Verdict */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -432,6 +446,21 @@ export default function CaseDetailPage() {
           {/* ═══ REDLINE ═══ */}
           {activeTab === "redline" && caseData && (
             <div className="space-y-3 stagger">
+              {caseData.redline_edits.length > 0 && (
+                <div className="surface-1 p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-[13px] text-zinc-200 font-medium">Negotiation counter-draft</p>
+                    <p className="text-[11px] text-zinc-500">Download a redlined .docx with all {caseData.redline_edits.length} edits ready to send.</p>
+                  </div>
+                  <button
+                    onClick={async () => { try { await downloadCounterDraft(caseId); } catch { alert("Download failed"); } }}
+                    className="btn-primary whitespace-nowrap"
+                    id="download-counter-draft"
+                  >
+                    Download .docx
+                  </button>
+                </div>
+              )}
               {caseData.redline_edits.length === 0 ? (
                 <div className="surface-1 py-16 text-center">
                   <p className="text-[13px] text-zinc-600">Redline edits pending</p>
@@ -450,6 +479,16 @@ export default function CaseDetailPage() {
             </div>
           )}
 
+          {/* ═══ COPILOT (RAG chat) ═══ */}
+          {activeTab === "copilot" && caseData && (
+            <ContractChat caseId={caseId} />
+          )}
+
+          {/* ═══ BOARDROOM (agent debate) ═══ */}
+          {activeTab === "boardroom" && caseData && (
+            <AgentBoardroom caseId={caseId} />
+          )}
+
           {/* ═══ NEGOTIATE ═══ */}
           {activeTab === "negotiate" && caseData && (
             <NegotiateTab caseData={caseData} />
@@ -457,11 +496,14 @@ export default function CaseDetailPage() {
 
           {/* ═══ AUDIT ═══ */}
           {activeTab === "audit" && (
-            <AuditChainView
-              entries={auditEntries}
-              isVerified={isVerified}
-              onVerify={handleVerifyAudit}
-            />
+            <div className="space-y-4">
+              <AuditVerify caseId={caseId} latestHash={auditEntries.length ? auditEntries[auditEntries.length - 1].current_hash : null} />
+              <AuditChainView
+                entries={auditEntries}
+                isVerified={isVerified}
+                onVerify={handleVerifyAudit}
+              />
+            </div>
           )}
         </div>
       </main>

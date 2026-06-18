@@ -67,7 +67,30 @@ export default function AgentFeed({ events, isConnected }: AgentFeedProps) {
     }
   }, [events.length]);
 
-  const feedItems = events.map(formatEvent).filter(Boolean) as { agent: string; message: string; type: string }[];
+  // Which agents have already completed, and is the pipeline finished overall?
+  // Used to stop "working" rows from spinning forever once their agent is done.
+  const completedAgents = new Set(
+    events
+      .filter((e) => e.event_type === "agent_completed")
+      .map((e) => (e.data?.agent as string) || (e.data?.stage as string))
+  );
+  const pipelineDone = events.some((e) =>
+    ["gate_requested", "case_finalized", "case_error"].includes(e.event_type)
+  );
+  const anyAgentWorking = events.some(
+    (e) =>
+      e.event_type === "agent_started" &&
+      !completedAgents.has((e.data?.agent as string) || (e.data?.stage as string))
+  );
+
+  const rawItems = events.map(formatEvent).filter(Boolean) as { agent: string; message: string; type: string }[];
+  // Downgrade a "working" row to a settled state once its agent has finished
+  // (or the whole pipeline has finished) so it no longer shows a live spinner.
+  const feedItems = rawItems.map((item) =>
+    item.type === "working" && (completedAgents.has(item.agent) || pipelineDone)
+      ? { ...item, type: "past" }
+      : item
+  );
 
   return (
     <div className="surface-1 overflow-hidden flex flex-col" style={{ height: 340 }}>
@@ -108,13 +131,16 @@ export default function AgentFeed({ events, isConnected }: AgentFeedProps) {
                   <div className="flex items-baseline gap-1.5">
                     <span className={`text-[11px] font-semibold ${config.color}`}>{name}</span>
                     {item.type === "working" && (
-                      <span className="text-[9px] text-zinc-700 flex items-center gap-1">
+                      <span className="text-[9px] text-blue-400/70 flex items-center gap-1">
                         <svg className="w-2.5 h-2.5 animate-spin" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
                         working
                       </span>
+                    )}
+                    {item.type === "past" && (
+                      <span className="text-[9px] text-zinc-600">✓</span>
                     )}
                     {item.type === "success" && (
                       <span className="text-[9px] text-emerald-600">✓ done</span>
@@ -127,8 +153,8 @@ export default function AgentFeed({ events, isConnected }: AgentFeedProps) {
           })
         )}
 
-        {/* Typing indicator when connected and processing */}
-        {isConnected && feedItems.length > 0 && !feedItems.some(f => f.type === "alert") && (
+        {/* Typing indicator only while agents are still actively working */}
+        {isConnected && feedItems.length > 0 && !pipelineDone && anyAgentWorking && (
           <div className="flex items-center gap-2 py-2 pl-8">
             <div className="flex gap-0.5">
               <span className="w-1 h-1 rounded-full bg-zinc-600 animate-bounce" style={{ animationDelay: "0s" }} />

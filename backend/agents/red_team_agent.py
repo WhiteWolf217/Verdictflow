@@ -99,8 +99,12 @@ async def _run_attacker(contract_text: str) -> list[dict]:
     try:
         response_text = await llm_generate(
             system_prompt=ATTACKER_SYSTEM_PROMPT,
-            user_prompt=f"Find all vulnerabilities in this contract:\n\n{sample}",
-            max_tokens=3000,
+            user_prompt=(
+                "Find the most serious vulnerabilities in this contract "
+                "(aim for the top 8, keep each exploit_scenario to 2-3 sentences):"
+                f"\n\n{sample}"
+            ),
+            max_tokens=8192,
             temperature=0.7,
         )
 
@@ -128,7 +132,7 @@ async def _run_defender(attacks: list[dict], contract_text: str) -> list[RedTeam
                 f"Attacks:\n{attacks_json}\n\n"
                 f"Contract (excerpt):\n{contract_text[:3000]}"
             ),
-            max_tokens=2000,
+            max_tokens=4096,
             temperature=0.3,
         )
 

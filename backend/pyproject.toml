@@ -16,6 +16,7 @@ dependencies = [
     "python-multipart>=0.0.9",
 
     # ── LLM Clients (used directly by every agent) ──
+    "google-genai>=1.0.0",  # primary LLM provider (Gemini) used by core/llm.py
     "anthropic>=0.39.0",
     "openai>=1.50.0",  # also drives the Featherless OpenAI-compatible endpoint
 

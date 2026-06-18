@@ -8,10 +8,12 @@ Includes retry logic and rate-limiting for free-tier Gemini accounts.
 """
 
 import asyncio
+import collections
 import json
 import logging
 import os
 import re
+import time
 from typing import Optional
 
 logger = logging.getLogger("verdictflow.llm")
@@ -20,6 +22,42 @@ logger = logging.getLogger("verdictflow.llm")
 
 _client = None
 _semaphore = asyncio.Semaphore(3)  # Max 3 concurrent Gemini calls
+
+
+# ── Global rate limiter ─────────────────────────────────────────────────────
+# Gemini's free tier enforces a per-MINUTE request cap (e.g. gemini-2.5-flash =
+# 5 RPM, gemini-2.0-flash = 15 RPM). The pipeline fires many calls in bursts,
+# so without pacing most calls get 429'd. This sliding-window limiter keeps the
+# whole process under GEMINI_RPM requests per rolling 60 seconds. Set GEMINI_RPM
+# high (e.g. 1000) once billing is enabled to effectively disable pacing.
+
+GEMINI_RPM = int(os.getenv("GEMINI_RPM", "14"))
+
+
+class _RateLimiter:
+    """Async sliding-window limiter: at most `rpm` acquisitions per 60s."""
+
+    def __init__(self, rpm: int):
+        self.rpm = max(1, rpm)
+        self._calls: collections.deque[float] = collections.deque()
+        self._lock = asyncio.Lock()
+
+    async def acquire(self) -> None:
+        async with self._lock:
+            now = time.monotonic()
+            while self._calls and now - self._calls[0] >= 60.0:
+                self._calls.popleft()
+            if len(self._calls) >= self.rpm:
+                wait = 60.0 - (now - self._calls[0]) + 0.2
+                logger.info(f"⏳ Rate limit pacing: waiting {wait:.1f}s (cap {self.rpm}/min)")
+                await asyncio.sleep(wait)
+                now = time.monotonic()
+                while self._calls and now - self._calls[0] >= 60.0:
+                    self._calls.popleft()
+            self._calls.append(time.monotonic())
+
+
+_limiter = _RateLimiter(GEMINI_RPM)
 
 
 def _get_client():
@@ -40,10 +78,14 @@ def _get_client():
 
 # ── Public helpers ──────────────────────────────────────────────────────────
 
-DEFAULT_MODEL = "gemini-2.5-flash"
+# Default model is overridable via env (GEMINI_MODEL). gemini-2.5-flash-lite has
+# the best free-tier throughput (15 RPM) with available daily quota, so it
+# sustains the pipeline far better than gemini-2.5-flash (5 RPM). Swap to
+# gemini-2.5-flash for best quality once billing is enabled.
+DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
 
-MAX_RETRIES = 3
-RETRY_DELAYS = [2, 5, 10]  # seconds between retries
+MAX_RETRIES = 4
+RETRY_DELAYS = [5, 12, 20, 30]  # seconds between retries (free-tier 429 backoff)
 
 
 async def llm_generate(
@@ -85,6 +127,9 @@ async def llm_generate(
                     logger.info(f"⏳ Retry {attempt + 1}/{MAX_RETRIES} after {delay}s...")
                     await asyncio.sleep(delay)
 
+                # Pace against the free-tier per-minute request cap.
+                await _limiter.acquire()
+
                 response = client.models.generate_content(
                     model=model,
                     contents=user_prompt,
@@ -96,6 +141,13 @@ async def llm_generate(
                 )
 
                 text = response.text or ""
+                # An empty body is usually a transient hiccup (or a finish-reason
+                # quirk) rather than a real "no content" answer — retry it.
+                if not text.strip() and attempt < MAX_RETRIES - 1:
+                    logger.warning(
+                        f"⚠️  Empty LLM response (attempt {attempt + 1}/{MAX_RETRIES}), retrying..."
+                    )
+                    continue
                 logger.debug(f"LLM response ({model}): {text[:120]}...")
                 return text
 
@@ -159,6 +211,25 @@ def parse_json_response(text: str) -> list | dict:
                 return json.loads(m.group())
             except json.JSONDecodeError:
                 continue
+
+    # 4) Salvage a TRUNCATED JSON array (model hit max_tokens mid-array): take
+    #    from the first '[' to the last complete '}' and close the array. This
+    #    recovers all complete objects and drops the partial trailing one.
+    start = text.find("[")
+    if start != -1:
+        snippet = text[start:]
+        last_obj = snippet.rfind("}")
+        if last_obj != -1:
+            candidate = snippet[: last_obj + 1] + "]"
+            try:
+                salvaged = json.loads(candidate)
+                if isinstance(salvaged, list) and salvaged:
+                    logger.warning(
+                        f"Recovered {len(salvaged)} items from a truncated JSON array"
+                    )
+                    return salvaged
+            except json.JSONDecodeError:
+                pass
 
     logger.warning("Failed to parse JSON from LLM response")
     return []

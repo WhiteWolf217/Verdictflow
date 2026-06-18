@@ -51,6 +51,11 @@ def get_audit_chain(case_id: str) -> Optional[AuditChain]:
     return _audit_chains.get(case_id)
 
 
+def get_contract_text(case_id: str) -> Optional[str]:
+    """Retrieve the raw contract text for a case (for chat / counter-draft)."""
+    return _contract_texts.get(case_id)
+
+
 # ── Orchestrator ─────────────────────────────────────────────────────────────
 
 
@@ -208,6 +213,19 @@ async def run_pipeline(
             })
 
         if band_client and room_id:
+            # Each analysis agent posts its own findings to its OWN Band chat.
+            await band_client.send_agent_message(
+                room_id, "Clause Analyst",
+                f"🔍 Clause analysis complete: {len(clause_findings)} findings flagged."
+            )
+            await band_client.send_agent_message(
+                room_id, "Red Team",
+                f"🗡️ Adversarial review complete: {len(red_team_attacks)} attack vectors identified."
+            )
+            await band_client.send_agent_message(
+                room_id, "Financial Risk",
+                f"💰 Financial exposure analysis complete: {len(financial_risks)} risks quantified."
+            )
             await band_client.send_agent_message(
                 room_id, "Orchestrator",
                 f"📊 Analysis complete: {len(clause_findings)} clause findings, "
@@ -241,6 +259,12 @@ async def run_pipeline(
             "count": len(compliance_checks),
         })
 
+        if band_client and room_id:
+            await band_client.send_agent_message(
+                room_id, "Compliance",
+                f"⚖️ Compliance review complete: {len(compliance_checks)} regulatory checks performed."
+            )
+
         # ── Stage 4: REDLINE ─────────────────────────────────────────────
         packet.status = CaseStatus.REDLINING
         await sse_manager.emit(case_id, "agent_started", {
@@ -269,6 +293,12 @@ async def run_pipeline(
             "message": f"Generated {len(redline_edits)} redline edits",
             "count": len(redline_edits),
         })
+
+        if band_client and room_id:
+            await band_client.send_agent_message(
+                room_id, "Redline",
+                f"✏️ Redline synthesis complete: {len(redline_edits)} edit suggestions generated."
+            )
 
         # ── Stage 5: ADJUDICATION (final verdict synthesis) ──────────────
         packet.status = CaseStatus.ADJUDICATING

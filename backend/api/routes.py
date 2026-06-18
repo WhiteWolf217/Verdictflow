@@ -288,13 +288,41 @@ async def download_audit(case_id: str):
 
 
 @router.get("/cases/{case_id}/audit/verify")
-async def verify_audit_trail(case_id: str):
-    """Verify the hash chain integrity of the audit trail."""
+async def verify_audit_trail(case_id: str, simulate_tamper: bool = False):
+    """
+    Verify the hash chain integrity of the audit trail.
+
+    When `simulate_tamper=true`, runs the verification against a COPY of the
+    chain with one entry altered — demonstrating that any tampering is detected,
+    without mutating the real (sealed) chain. Used by the UI's tamper demo.
+    """
     from agents.orchestrator import get_audit_chain
 
     audit_chain = get_audit_chain(case_id)
     if not audit_chain:
         raise HTTPException(404, f"No audit chain found for case '{case_id}'")
+
+    if simulate_tamper:
+        import copy
+        from models.audit import AuditChain
+        clone = AuditChain()
+        clone.entries = copy.deepcopy(audit_chain.entries)
+        tampered_step = None
+        if clone.entries:
+            # Alter a hashed field on an entry without recomputing its hash.
+            idx = len(clone.entries) // 2
+            clone.entries[idx].action = clone.entries[idx].action + "_TAMPERED"
+            tampered_step = idx
+        is_valid, error = clone.verify_integrity()
+        return {
+            "case_id": case_id,
+            "is_valid": is_valid,
+            "chain_length": len(clone),
+            "latest_hash": audit_chain.get_latest_hash(),
+            "error": error,
+            "simulated": True,
+            "tampered_step": tampered_step,
+        }
 
     is_valid, error = audit_chain.verify_integrity()
 

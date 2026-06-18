@@ -63,13 +63,18 @@ async def lifespan(app: FastAPI):
         app.state.band_client = band_client
         logger.info(f"✅ Band case-room coordination ready (mode={band_client.mode})")
 
-        # Verify agent identity with Band platform
+        # Verify every agent identity with the Band platform.
         if band_client.is_available:
-            identity = await band_client.verify_identity()
-            if identity:
-                logger.info(f"✅ Band agent identity confirmed: {identity.get('name', 'N/A')}")
+            logger.info("🔎 Verifying all Band agent identities...")
+            results = await band_client.verify_all_agents()
+            ok_count = sum(1 for v in results.values() if v)
+            if ok_count == len(results):
+                logger.info(f"✅ All {ok_count} Band agents verified and ready")
             else:
-                logger.warning("⚠️  Band agent identity could not be verified — API may reject calls")
+                logger.warning(
+                    f"⚠️  Only {ok_count}/{len(results)} Band agents verified — "
+                    "check the rejected keys above"
+                )
     except Exception as e:
         logger.warning(f"⚠️  Band client init failed: {e}")
         app.state.band_client = None
@@ -105,6 +110,10 @@ app.include_router(api_router, prefix="/api")
 # Include Negotiation routes
 from api.negotiate import router as negotiate_router  # noqa: E402
 app.include_router(negotiate_router)
+
+# Include standout feature routes (chat, debate, counter-draft, negotiation email)
+from api.features import router as features_router  # noqa: E402
+app.include_router(features_router)
 
 
 @app.get("/health")

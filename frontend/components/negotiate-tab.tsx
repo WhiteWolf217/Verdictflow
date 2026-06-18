@@ -11,10 +11,33 @@ import {
   sendSimulationTurn,
   evaluateNegotiation,
   getNegotiationCoaching,
+  getNegotiationEmail,
   type NegotiationStrategy,
   type NegotiationEvaluation,
   type CaseDetail,
 } from "@/lib/api";
+import RiskRadar from "@/components/risk-radar";
+
+const SKILL_KEY = "vf_negotiation_scores";
+
+interface SpeechRecLike {
+  lang: string;
+  interimResults: boolean;
+  onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void;
+  onend: () => void;
+  onerror: () => void;
+  start: () => void;
+  stop: () => void;
+}
+
+const DIMENSIONS: { key: keyof NonNullable<NegotiationEvaluation["dimension_scores"]>; label: string }[] = [
+  { key: "assertiveness", label: "Assertive" },
+  { key: "preparation", label: "Prep" },
+  { key: "communication", label: "Comms" },
+  { key: "value_creation", label: "Value" },
+  { key: "composure", label: "Composure" },
+  { key: "closing", label: "Closing" },
+];
 
 interface NegotiateTabProps {
   caseData: CaseDetail;
@@ -48,9 +71,76 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
   const [isStarting, setIsStarting] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
+  // Email drafter
+  const [email, setEmail] = useState<string | null>(null);
+  const [isDraftingEmail, setIsDraftingEmail] = useState(false);
+
+  // Voice
+  const [voiceOn, setVoiceOn] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecLike | null>(null);
+
+  // Skill history (persisted locally)
+  const [history, setHistory] = useState<number[]>([]);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SKILL_KEY);
+      if (raw) setHistory(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, []);
+
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
   }, [messages.length]);
+
+  const speak = (text: string) => {
+    if (!voiceOn || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1.05;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    } catch { /* ignore */ }
+  };
+
+  const toggleListen = () => {
+    const w = window as unknown as {
+      SpeechRecognition?: new () => SpeechRecLike;
+      webkitSpeechRecognition?: new () => SpeechRecLike;
+    };
+    const SR = (typeof window !== "undefined" && (w.SpeechRecognition || w.webkitSpeechRecognition)) || null;
+    if (!SR) {
+      alert("Voice input isn't supported in this browser. Try Chrome or Edge.");
+      return;
+    }
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+    const rec = new SR();
+    rec.lang = "en-US";
+    rec.interimResults = false;
+    rec.onresult = (e) => {
+      const text = e.results[0][0].transcript;
+      setInput((prev) => (prev ? prev + " " : "") + text);
+    };
+    rec.onend = () => setIsListening(false);
+    rec.onerror = () => setIsListening(false);
+    recognitionRef.current = rec;
+    setIsListening(true);
+    rec.start();
+  };
+
+  const handleDraftEmail = async () => {
+    setIsDraftingEmail(true);
+    try {
+      setEmail(await getNegotiationEmail(caseData.case_id));
+    } catch {
+      setEmail("Could not draft the email right now. Please try again.");
+    }
+    setIsDraftingEmail(false);
+  };
 
   const handleLoadCoaching = async () => {
     setIsLoadingCoach(true);
@@ -115,6 +205,7 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
       const result = await sendSimulationTurn(sessionId, msg);
       setMessages((prev) => [...prev, { role: "counterparty", message: result.counterparty_response }]);
       setCanEvaluate(result.can_evaluate);
+      speak(result.counterparty_response);
     } catch (e) {
       console.error(e);
       setMessages((prev) => [...prev, { role: "system", message: "Failed to get response." }]);
@@ -129,6 +220,12 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
       const result = await evaluateNegotiation(sessionId);
       setEvaluation(result.evaluation);
       setSessionId(null);
+      // Persist the score for skill-progress tracking.
+      try {
+        const next = [...history, result.evaluation.overall_score].slice(-12);
+        setHistory(next);
+        localStorage.setItem(SKILL_KEY, JSON.stringify(next));
+      } catch { /* ignore */ }
     } catch (e) {
       console.error(e);
     }
@@ -165,7 +262,31 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
 
       {/* ═══ COACH MODE ═══ */}
       {mode === "coach" && (
-        <div>
+        <div className="space-y-4">
+          {/* Negotiation email drafter */}
+          <div className="surface-1 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[13px] text-zinc-200 font-medium">Draft the counterparty email</p>
+                <p className="text-[11px] text-zinc-500">Turn the findings into a ready-to-send negotiation email.</p>
+              </div>
+              <button onClick={handleDraftEmail} disabled={isDraftingEmail} className="btn-outline whitespace-nowrap">
+                {isDraftingEmail ? "Drafting…" : "Draft Email"}
+              </button>
+            </div>
+            {email && (
+              <div className="mt-3 pt-3 border-t border-zinc-800/40">
+                <pre className="text-[11px] text-zinc-300 whitespace-pre-wrap font-sans leading-relaxed max-h-64 overflow-y-auto">{email}</pre>
+                <button
+                  onClick={() => { navigator.clipboard?.writeText(email); }}
+                  className="btn-outline mt-2 text-[11px]"
+                >
+                  Copy email
+                </button>
+              </div>
+            )}
+          </div>
+
           {strategies.length === 0 ? (
             <div className="surface-1 p-8 text-center">
               <svg className="w-10 h-10 text-zinc-700 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
@@ -309,6 +430,28 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
                   disabled={isSending}
                   id="negotiate-input"
                 />
+                <button
+                  onClick={toggleListen}
+                  title="Speak your response"
+                  className={`px-3 rounded-lg border transition-all ${
+                    isListening ? "border-red-500/50 text-red-400 bg-red-500/10 animate-pulse" : "border-zinc-700 text-zinc-400 hover:border-zinc-500"
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setVoiceOn((v) => !v)}
+                  title="Toggle spoken replies"
+                  className={`px-3 rounded-lg border transition-all ${
+                    voiceOn ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10" : "border-zinc-700 text-zinc-500 hover:border-zinc-500"
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+                  </svg>
+                </button>
                 <button onClick={handleSendMessage} disabled={isSending || !input.trim()} className="btn-primary px-4">
                   Send
                 </button>
@@ -341,6 +484,46 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
                 </div>
                 <p className="text-[13px] text-zinc-400 max-w-md mx-auto">{evaluation.summary}</p>
               </div>
+
+              {/* Performance breakdown — radar + per-dimension bars */}
+              {evaluation.dimension_scores && (
+                <div className="surface-1 p-5">
+                  <p className="metric-label mb-4">Performance Breakdown</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    {/* Radar */}
+                    <div className="flex justify-center">
+                      <RiskRadar
+                        size={200}
+                        data={DIMENSIONS.map((d) => ({
+                          label: d.label,
+                          value: Math.max(0, Math.min(1, (evaluation.dimension_scores?.[d.key] ?? 0) / 100)),
+                        }))}
+                      />
+                    </div>
+                    {/* Bars */}
+                    <div className="space-y-2.5">
+                      {DIMENSIONS.map((d) => {
+                        const v = evaluation.dimension_scores?.[d.key] ?? 0;
+                        const color = v >= 75 ? "bg-emerald-400" : v >= 50 ? "bg-amber-400" : "bg-red-400";
+                        return (
+                          <div key={d.key}>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[11px] text-zinc-400">{d.label}</span>
+                              <span className="text-[11px] text-zinc-300 font-medium font-mono">{v}</span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${color} transition-all duration-700 ease-out`}
+                                style={{ width: `${Math.max(0, Math.min(100, v))}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Details grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -386,6 +569,29 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
                   </ul>
                 </div>
               </div>
+
+              {/* Skill progress over time */}
+              {history.length > 1 && (
+                <div className="surface-1 p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="metric-label">Your Skill Progress</p>
+                    <span className="text-[11px] text-zinc-500">
+                      best {Math.max(...history)} · avg {Math.round(history.reduce((a, b) => a + b, 0) / history.length)}
+                    </span>
+                  </div>
+                  <div className="flex items-end gap-1.5 h-20">
+                    {history.map((sc, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center justify-end h-full" title={`Session ${i + 1}: ${sc}`}>
+                        <div
+                          className={`w-full rounded-t ${sc >= 80 ? "bg-emerald-400/70" : sc >= 60 ? "bg-amber-400/70" : "bg-red-400/70"} ${i === history.length - 1 ? "ring-1 ring-white/30" : ""}`}
+                          style={{ height: `${Math.max(6, sc)}%` }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-zinc-600 mt-2 text-center">{history.length} sessions tracked on this device</p>
+                </div>
+              )}
 
               <button onClick={() => { setEvaluation(null); setMessages([]); }} className="btn-outline w-full">
                 Try Again
