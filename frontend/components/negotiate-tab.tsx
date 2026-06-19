@@ -55,6 +55,7 @@ interface SpeechRecLike {
   onerror: (e: SpeechErrEvent) => void;
   onend: () => void;
   onstart: () => void;
+  onspeechstart: () => void;
   start: () => void;
   stop: () => void;
   abort: () => void;
@@ -103,7 +104,19 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
   const recognitionRef = useRef<SpeechRecLike | null>(null);
   const keepListeningRef = useRef(false); // user intent — survives auto-restarts
   const baseTextRef = useRef("");          // input text captured when listening began
-  const finalRef = useRef("");             // finalized speech accumulated this session
+  const finalRef = useRef("");             // finalized speech accumulated this turn
+  // Conversational voice (Siri-style): auto-send after a pause + barge-in.
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastCombinedRef = useRef("");      // latest transcript text (for auto-send)
+  const sendingRef = useRef(false);        // mirror of isSending for callbacks
+  const commitRef = useRef<() => void>(() => {}); // latest auto-send fn (no stale closure)
+  const SILENCE_MS = 1300;                 // pause that ends a turn and auto-sends
+
+  const cancelSpeech = () => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      try { window.speechSynthesis.cancel(); } catch { /* ignore */ }
+    }
+  };
 
   const getSpeechRecognition = (): (new () => SpeechRecLike) | null => {
     if (typeof window === "undefined") return null;
@@ -116,6 +129,10 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
 
   const stopListening = () => {
     keepListeningRef.current = false;
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
     try {
       recognitionRef.current?.stop();
     } catch { /* ignore */ }
@@ -148,7 +165,13 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
       rec.interimResults = true;
       rec.maxAlternatives = 1;
 
+      // Barge-in: the instant the user starts speaking, silence the AI.
+      rec.onspeechstart = () => cancelSpeech();
+
       rec.onresult = (e) => {
+        // Barge-in safety net (some browsers don't fire onspeechstart reliably).
+        cancelSpeech();
+
         // Process only results we haven't seen yet (resultIndex), so finalized
         // text accumulates exactly once — no duplication across events/restarts.
         let interim = "";
@@ -159,7 +182,12 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
           else interim += text;
         }
         const combined = (baseTextRef.current + finalRef.current + interim).replace(/\s{2,}/g, " ").trimStart();
+        lastCombinedRef.current = combined;
         setInput(combined); // single source of truth: React controls the input
+
+        // Restart the pause timer — when speech stops for SILENCE_MS, auto-send.
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = setTimeout(() => commitRef.current(), SILENCE_MS);
       };
 
       rec.onerror = (e) => {
@@ -204,13 +232,13 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
     start();
   };
 
-  // Stop any active recognition when the simulator unmounts.
+  // Stop any active recognition (and the AI voice) when the simulator unmounts.
   useEffect(() => {
     return () => {
       keepListeningRef.current = false;
-      try {
-        recognitionRef.current?.abort();
-      } catch { /* ignore */ }
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      try { recognitionRef.current?.abort(); } catch { /* ignore */ }
+      cancelSpeech();
     };
   }, []);
 
@@ -299,9 +327,9 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
     setIsStarting(false);
   };
 
-  const handleSendMessage = async () => {
-    if (!input.trim() || !sessionId || isSending) return;
-    const msg = input.trim();
+  const submitTurn = async (raw: string) => {
+    const msg = raw.trim();
+    if (!msg || !sessionId || isSending) return;
     setInput("");
     setMessages((prev) => [...prev, { role: "user", message: msg }]);
     setIsSending(true);
@@ -316,6 +344,20 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
       setMessages((prev) => [...prev, { role: "system", message: "Failed to get response." }]);
     }
     setIsSending(false);
+  };
+
+  const handleSendMessage = () => submitTurn(input);
+
+  // Keep refs in sync so the speech-recognition callbacks always see fresh state.
+  sendingRef.current = isSending;
+  commitRef.current = () => {
+    const text = lastCombinedRef.current.trim();
+    if (!text || !sessionId || sendingRef.current) return;
+    // Reset buffers so the next spoken turn starts clean (recognition keeps running).
+    finalRef.current = "";
+    baseTextRef.current = "";
+    lastCombinedRef.current = "";
+    void submitTurn(text);
   };
 
   const handleEvaluate = async () => {
@@ -566,6 +608,17 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
                   </button>
                 )}
               </div>
+              {/* Live conversational-voice hint */}
+              {isListening && !voiceError && (
+                <div className="px-3 pb-2 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                  <p className="text-[10px] text-zinc-500">
+                    {voiceOn
+                      ? "Listening — speak naturally; pause to send. I'll stop talking the moment you start."
+                      : "Listening — speak naturally; pause to send automatically."}
+                  </p>
+                </div>
+              )}
               {/* Voice error feedback */}
               {voiceError && (
                 <div className="px-3 pb-2">
