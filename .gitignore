@@ -106,3 +106,6 @@ backend/test_*.py
 *.tmp
 *.temp
 .gemini/
+
+# Allow frontend/lib folder to be tracked by Git
+!frontend/lib/
