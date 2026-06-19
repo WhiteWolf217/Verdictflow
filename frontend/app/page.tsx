@@ -65,18 +65,60 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Main */}
-      <main className="max-w-6xl mx-auto px-6 py-12">
-        {/* Hero */}
-        <div className="mb-10 animate-slide-up">
-          <h2 className="text-[28px] font-bold text-zinc-100 tracking-tight">
-            Contract Review
-          </h2>
-          <p className="text-[14px] text-zinc-500 mt-1.5 max-w-lg">
-            Upload a contract for multi-agent AI analysis — clause review, adversarial testing,
-            compliance checks, and automated redlining.
+      {/* Main Landing / Dashboard Container */}
+      <main className="max-w-6xl mx-auto px-6 pt-16 pb-12">
+        {/* LANDING HERO SECTION */}
+        <div className="relative mb-24 animate-slide-up text-center flex flex-col items-center">
+          {/* Glowing background effect */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none -z-10" />
+
+          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+            AI that <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">argues.</span> <br/>
+            So your lawyers don&apos;t have to.
+          </h1>
+          
+          <p className="text-[16px] text-zinc-400 max-w-2xl mx-auto mb-12 leading-relaxed">
+            Single-agent AI is dead. VerdictFlow uses a specialized band of AI agents that actively 
+            cross-examine and debate each other to find hidden contract risks, calculate legal exposure, 
+            and forge consensus in real-time.
           </p>
+
+          {/* Feature Highlight Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full text-left">
+            <div className="surface-1 p-5 border border-zinc-800/60 hover:border-blue-500/30 transition-colors group">
+              <div className="w-8 h-8 rounded bg-blue-500/10 flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform">
+                🎙️
+              </div>
+              <h3 className="text-[14px] font-semibold text-zinc-200 mb-1.5">Live Boardroom</h3>
+              <p className="text-[12px] text-zinc-500 leading-relaxed">Watch the Red Team agent actively cross-examine the Clause Analyst in real-time.</p>
+            </div>
+            <div className="surface-1 p-5 border border-zinc-800/60 hover:border-emerald-500/30 transition-colors group">
+              <div className="w-8 h-8 rounded bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
+                🆚
+              </div>
+              <h3 className="text-[14px] font-semibold text-zinc-200 mb-1.5">Risk Delta</h3>
+              <p className="text-[12px] text-zinc-500 leading-relaxed">Upload V1 and V2. Instantly see if the counterparty&apos;s edits increased your legal exposure.</p>
+            </div>
+            <div className="surface-1 p-5 border border-zinc-800/60 hover:border-purple-500/30 transition-colors group">
+              <div className="w-8 h-8 rounded bg-purple-500/10 flex items-center justify-center text-purple-400 mb-4 group-hover:scale-110 transition-transform">
+                🎤
+              </div>
+              <h3 className="text-[14px] font-semibold text-zinc-200 mb-1.5">Voice Negotiation</h3>
+              <p className="text-[12px] text-zinc-500 leading-relaxed">Speak your arguments. Our AI Simulator responds live and scores your assertiveness.</p>
+            </div>
+          </div>
         </div>
+
+        {/* --- Dashboard Section --- */}
+        <div className="border-t border-zinc-800/50 pt-16" id="dashboard">
+          <div className="mb-8">
+            <h2 className="text-[24px] font-bold text-zinc-100 tracking-tight">
+              Get Started
+            </h2>
+            <p className="text-[14px] text-zinc-500 mt-1 max-w-lg">
+              Upload a contract or select an existing case to launch the Multi-Agent Pipeline.
+            </p>
+          </div>
 
         {/* Mode Toggle */}
         <div className="flex items-center gap-0 mb-6 animate-slide-up" style={{ animationDelay: "0.03s" }}>
@@ -170,12 +212,12 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
+    </main>
 
-      {/* Footer */}
       <footer className="border-t border-zinc-800/30 mt-20">
         <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between text-[11px] text-zinc-700">
-          <p>VerdictFlow · Band of Agents Hackathon</p>
+          <p>VerdictFlow · Multi-Agent Contract Negotiator</p>
           <p>6 AI Agents · Tamper-Evident Audit · Human-Gated</p>
         </div>
       </footer>
