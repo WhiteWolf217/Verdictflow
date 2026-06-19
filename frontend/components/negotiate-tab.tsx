@@ -20,24 +20,9 @@ import RiskRadar from "@/components/risk-radar";
 
 const SKILL_KEY = "vf_negotiation_scores";
 
-interface SpeechRecResult {
-  transcript: string;
-}
-
-interface SpeechRecResultList extends ArrayLike<SpeechRecResult> {
-  isFinal: boolean;
-}
-
-interface SpeechRecLike {
-  lang: string;
-  interimResults: boolean;
-  continuous: boolean;
-  onresult: (e: { results: ArrayLike<SpeechRecResultList> }) => void;
-  onend: () => void;
-  onerror: () => void;
-  start: () => void;
-  stop: () => void;
-}
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Using 'any' for SpeechRecognition because the Web Speech API types
+// vary across browsers and strict typing causes silent failures.
 
 const DIMENSIONS: { key: keyof NonNullable<NegotiationEvaluation["dimension_scores"]>; label: string }[] = [
   { key: "assertiveness", label: "Assertive" },
@@ -87,86 +72,164 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
   // Voice
   const [voiceOn, setVoiceOn] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const recognitionRef = useRef<SpeechRecLike | null>(null);
-  const baseTextRef = useRef("");       // Text that was in the input BEFORE mic started
-  const finalTextRef = useRef("");      // Accumulated finalized speech text
+  const [voiceError, setVoiceError] = useState("");
+  const recognitionRef = useRef<any>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Track whether user wants to keep listening (survives re-renders and restarts)
+  const wantListeningRef = useRef(false);
+  const restartCountRef = useRef(0);
+  const MAX_RESTARTS = 50; // ~4 min of waiting for speech
+  // Keep a ref to the latest input value for the onresult callback
+  const baseTextRef = useRef("");
+  const accumulatedRef = useRef(""); // All finalized speech so far
 
-  // Keep a ref to the latest setInput so the recognition callback always has the fresh setter
-  const setInputRef = useRef(setInput);
-  setInputRef.current = setInput;
+  const stopListening = () => {
+    wantListeningRef.current = false;
+    recognitionRef.current?.stop();
+    setIsListening(false);
+  };
 
   const toggleListen = () => {
-    const w = window as unknown as {
-      SpeechRecognition?: new () => SpeechRecLike;
-      webkitSpeechRecognition?: new () => SpeechRecLike;
-    };
-    const SR = (typeof window !== "undefined" && (w.SpeechRecognition || w.webkitSpeechRecognition)) || null;
+    setVoiceError("");
+
+    // Get SpeechRecognition constructor
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) {
-      alert("Voice input isn't supported in this browser. Try Chrome or Edge.");
+      setVoiceError("Voice not supported. Use Chrome or Edge.");
       return;
     }
+
+    // If already listening, stop
     if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
+      stopListening();
       return;
     }
-    const rec = new SR();
-    rec.lang = "en-US";
-    rec.interimResults = true;
-    try { rec.continuous = true; } catch { /* some browsers don't support continuous */ }
 
-    // Capture what's already in the input field
+    // Snapshot the current input value as our base
     baseTextRef.current = input;
-    finalTextRef.current = "";
+    accumulatedRef.current = "";
+    restartCountRef.current = 0;
+    wantListeningRef.current = true;
 
-    rec.onresult = (e) => {
-      let interimTranscript = "";
-      let sessionFinal = "";
+    const startRecognition = () => {
+      const rec = new SR();
+      rec.lang = "en-US";
+      rec.interimResults = true;
+      rec.continuous = true;
+      rec.maxAlternatives = 1;
 
-      for (let i = 0; i < e.results.length; i++) {
-        const result = e.results[i];
-        const transcript = result[0].transcript;
-        if (result.isFinal) {
-          sessionFinal += transcript;
-        } else {
-          interimTranscript += transcript;
+      console.log("[Voice] Starting recognition. Base text:", JSON.stringify(baseTextRef.current));
+
+      rec.onstart = () => {
+        console.log("[Voice] Recognition started successfully");
+      };
+
+      rec.onaudiostart = () => {
+        console.log("[Voice] Audio capture started — mic is working");
+      };
+
+      rec.onresult = (event: any) => {
+        console.log("[Voice] Got result event with", event.results.length, "results");
+        let finalTranscript = "";
+        let interimTranscript = "";
+
+        for (let i = 0; i < event.results.length; i++) {
+          const result = event.results[i];
+          if (result.isFinal) {
+            finalTranscript += result[0].transcript;
+          } else {
+            interimTranscript += result[0].transcript;
+          }
         }
-      }
 
-      // Update the accumulated final text
-      finalTextRef.current = sessionFinal;
+        console.log("[Voice] Finals:", JSON.stringify(finalTranscript), "Interim:", JSON.stringify(interimTranscript));
 
-      // Build the full input: base text + finalized speech + live interim
-      const base = baseTextRef.current;
-      const combined = [base, sessionFinal, interimTranscript]
-        .filter(Boolean)
-        .join(" ")
-        .replace(/\s+/g, " ")
-        .trim();
+        // Store accumulated finals
+        if (finalTranscript) {
+          accumulatedRef.current = finalTranscript;
+        }
 
-      // Update the input via ref to avoid stale closures
-      setInputRef.current(combined);
+        // Build combined text
+        const base = baseTextRef.current;
+        const speechText = finalTranscript || accumulatedRef.current;
+        const combined = [base, speechText, interimTranscript]
+          .filter(s => s && s.length > 0)
+          .join(" ")
+          .replace(/\s{2,}/g, " ");
 
-      // Also directly set the DOM value for immediate visual feedback
-      if (inputRef.current) {
-        inputRef.current.value = combined;
+        // Update React state
+        setInput(combined);
+
+        // ALSO directly update the DOM input as a safety net
+        if (inputRef.current) {
+          inputRef.current.value = combined;
+        }
+      };
+
+      rec.onerror = (event: any) => {
+        const errorMsg = event?.error || "unknown error";
+        console.warn("[Voice] Recognition error:", errorMsg);
+
+        if (errorMsg === "no-speech") {
+          // Don't show error, just silently restart — user hasn't spoken yet
+          console.log("[Voice] No speech detected, will auto-restart...");
+          return; // onend will handle restart
+        }
+
+        // Real errors — stop and show
+        wantListeningRef.current = false;
+        setIsListening(false);
+        if (errorMsg === "not-allowed") {
+          setVoiceError("Microphone blocked. Click 🔒 in address bar → Allow Microphone → Refresh.");
+        } else if (errorMsg === "network") {
+          setVoiceError("Network error. Speech recognition needs internet.");
+        } else if (errorMsg === "aborted") {
+          // User stopped, no error needed
+        } else {
+          setVoiceError(`Voice error: ${errorMsg}`);
+        }
+      };
+
+      rec.onend = () => {
+        console.log("[Voice] Recognition ended. Want listening:", wantListeningRef.current);
+        // Auto-restart if user still wants to listen
+        if (wantListeningRef.current && restartCountRef.current < MAX_RESTARTS) {
+          restartCountRef.current++;
+          console.log("[Voice] Auto-restarting... (attempt", restartCountRef.current, ")");
+          // Update base text with accumulated speech before restart
+          if (accumulatedRef.current) {
+            const base = baseTextRef.current;
+            baseTextRef.current = [base, accumulatedRef.current]
+              .filter(Boolean)
+              .join(" ")
+              .replace(/\s{2,}/g, " ");
+            accumulatedRef.current = "";
+          }
+          setTimeout(() => {
+            if (wantListeningRef.current) {
+              startRecognition();
+            }
+          }, 100);
+        } else {
+          setIsListening(false);
+        }
+      };
+
+      recognitionRef.current = rec;
+      setIsListening(true);
+
+      try {
+        rec.start();
+        console.log("[Voice] rec.start() called");
+      } catch (e: any) {
+        console.error("[Voice] Failed to start:", e);
+        setVoiceError(`Failed to start: ${e?.message || e}`);
+        setIsListening(false);
+        wantListeningRef.current = false;
       }
     };
-    rec.onend = () => {
-      setIsListening(false);
-      // When recognition ends, commit the final text to input
-      const base = baseTextRef.current;
-      const final = finalTextRef.current;
-      if (final) {
-        const committed = [base, final].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
-        setInputRef.current(committed);
-      }
-    };
-    rec.onerror = () => setIsListening(false);
-    recognitionRef.current = rec;
-    setIsListening(true);
-    rec.start();
+
+    startRecognition();
   };
 
   // Skill history (persisted locally)
@@ -522,6 +585,12 @@ export default function NegotiateTab({ caseData }: NegotiateTabProps) {
                   </button>
                 )}
               </div>
+              {/* Voice error feedback */}
+              {voiceError && (
+                <div className="px-3 pb-2">
+                  <p className="text-[10px] text-red-400 bg-red-400/10 px-2 py-1 rounded">{voiceError}</p>
+                </div>
+              )}
             </div>
           )}
 
