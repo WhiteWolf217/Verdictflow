@@ -44,6 +44,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "compliance", label: "Compliance" },
   { id: "redline", label: "Redline" },
   { id: "copilot", label: "Copilot" },
+  { id: "boardroom", label: "Boardroom" },
   { id: "negotiate", label: "Negotiate" },
   { id: "audit", label: "Audit Trail" },
 ];
@@ -490,7 +491,10 @@ export default function CaseDetailPage() {
             </div>
           )}
 
-
+          {/* ═══ BOARDROOM (agent debate) ═══ */}
+          {activeTab === "boardroom" && caseData && (
+            <AgentBoardroom caseId={caseId} />
+          )}
 
           {/* ═══ NEGOTIATE — always mounted to preserve session & coaching ═══ */}
           {caseData && (

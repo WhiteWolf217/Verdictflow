@@ -306,7 +306,7 @@ function DropZone({
   sublabel: string;
   file: File | null;
   onFile: (f: File) => void;
-  inputRef: React.RefObject<HTMLInputElement | null>;
+  inputRef: React.RefObject<HTMLInputElement>;
   accent: string;
   accentBg: string;
 }) {
